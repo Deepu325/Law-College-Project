@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply font-body text-text-body bg-white;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading text-text-dark;
+  }
+}
+
+@layer components {
+
+  /* Button Styles */
+  .btn-primary {
+    @apply bg-brand-gold text-text-dark font-semibold px-8 py-3 rounded-md hover:bg-yellow-500 transition-colors duration-200 shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply bg-brand-purple text-white font-semibold px-8 py-3 rounded-md hover:bg-purple-900 transition-colors duration-200;
+  }
+
+  .btn-outline {
+    @apply border-2 border-brand-purple text-brand-purple font-semibold px-6 py-2 rounded-md hover:bg-brand-purple hover:text-white transition-all duration-200;
+  }
+
+  /* Card Styles */
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+
+  .card-exam {
+    @apply bg-white rounded-lg shadow-sm p-8 border border-gray-100;
+  }
+
+  /* Input Styles */
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all;
+  }
+
+  .input-error {
+    @apply border-error-red focus:ring-error-red;
+  }
+
+  /* Timer Styles */
+  .timer-normal {
+    @apply text-brand-purple font-bold text-xl;
+  }
+
+  .timer-warning {
+    @apply text-yellow-600 font-bold text-xl animate-pulse;
+  }
+
+  .timer-critical {
+    @apply text-error-red font-bold text-2xl animate-pulse;
+  }
+
+  /* Question Option Styles */
+  .option-radio {
+    @apply flex items-center p-4 border-2 border-gray-200 rounded-md cursor-pointer hover:border-brand-purple hover:bg-purple-50 transition-all;
+  }
+
+  .option-selected {
+    @apply border-brand-purple bg-purple-50;
+  }
+
+  /* Admin Table */
+  .admin-table {
+    @apply w-full border-collapse bg-white shadow-sm rounded-lg overflow-hidden;
+  }
+
+  .admin-table th {
+    @apply bg-brand-purple text-white px-6 py-4 text-left font-semibold;
+  }
+
+  .admin-table td {
+    @apply px-6 py-4 border-b border-gray-200;
+  }
+
+  .admin-table tr:hover {
+    @apply bg-gray-50;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-shadow {
+    box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Disable right-click (optional - can be enabled in production) */
+/* body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+} */
+
+/* Loading spinner */
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4B2E83;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Auto-save indicator */
+.save-indicator {
+  @apply text-sm text-success-green flex items-center gap-2;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
+}
