@@ -4,7 +4,7 @@ const questionSchema = new mongoose.Schema({
     section: {
         type: String,
         required: true,
-        enum: ['RC', 'LEGAL'],
+        enum: ['RC', 'LEGAL', 'GK', 'LOGICAL', 'QUANT'],
         uppercase: true
     },
     passageId: {

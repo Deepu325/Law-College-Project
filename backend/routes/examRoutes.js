@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
     registerStudent,
+    startExamActivity,
     getQuestions,
     saveAnswer,
     submitExam,
@@ -21,9 +22,10 @@ router.post(
     '/register',
     validateRegistration,
     checkValidation,
-    checkDuplicateAttempt,
     registerStudent
 );
+
+router.post('/start-exam', startExamActivity);
 
 router.get('/questions', getQuestions);
 

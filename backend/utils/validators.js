@@ -21,7 +21,11 @@ const validateRegistration = [
 
     body('qualification')
         .trim()
-        .notEmpty().withMessage('Qualification is required'),
+        .notEmpty().withMessage('Course Applied is required'),
+
+    body('state')
+        .trim()
+        .notEmpty().withMessage('State is required'),
 
     body('city')
         .trim()

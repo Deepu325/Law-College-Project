@@ -1,7 +1,7 @@
 {
-  "name": "sclat-backend",
+  "name": "slet-backend",
   "version": "1.0.0",
-  "description": "S-CLAT Online Law Entrance Examination System - Backend",
+  "description": "SLET – Soundarya Law Entrance Test - Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,7 +10,12 @@
     "create:admin": "node scripts/createAdmin.js",
     "test": "echo \"Production-ready backend\""
   },
-  "keywords": ["exam", "law", "entrance", "mern"],
+  "keywords": [
+    "exam",
+    "law",
+    "entrance",
+    "mern"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {

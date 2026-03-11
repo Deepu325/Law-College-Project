@@ -10,19 +10,17 @@ const examSessionSchema = new mongoose.Schema({
     startTime: {
         type: Date,
         required: true,
-        default: Date.now,
-        immutable: true
+        default: Date.now
     },
     endTime: {
         type: Date,
-        required: true,
-        immutable: true
+        required: true
     },
     status: {
         type: String,
         required: true,
-        enum: ['IN_PROGRESS', 'SUBMITTED'],
-        default: 'IN_PROGRESS'
+        enum: ['not_started', 'in_progress', 'submitted'],
+        default: 'not_started'
     },
     score: {
         type: Number,

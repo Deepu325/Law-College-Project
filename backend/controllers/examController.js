@@ -8,75 +8,140 @@ const mongoose = require('mongoose');
 // @desc    Register student and create exam session
 // @route   POST /api/register
 // @access  Public
+// @desc    Register student and create/resume exam session
+// @route   POST /api/register
+// @access  Public
 const registerStudent = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
-        const { fullName, email, phone, qualification, city, consent } = req.body;
+        const { fullName, email, phone, qualification, state, city, consent } = req.body;
+        const normalizedEmail = email.toLowerCase().trim();
+        const normalizedPhone = phone.trim();
 
-        // Create student (atomic operation with unique constraints)
-        const student = await Student.create([{
+        // Case 2 & 3: Check for existing student
+        let student = await Student.findOne({
+            $or: [{ email: normalizedEmail }, { phone: normalizedPhone }]
+        });
+
+        if (student) {
+            const session = await ExamSession.findOne({ studentId: student._id });
+
+            if (session) {
+                // Case 3 — exam_status = "completed"
+                if (session.status === 'completed') {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'You have already attempted this exam using this email or mobile number. Multiple attempts are not allowed.',
+                        duplicateAttempt: true,
+                        isCompleted: true
+                    });
+                }
+
+                // Case 2 — exam_status = "in_progress" or "not_started"
+                const totalQuestions = await Question.countDocuments();
+                return res.status(200).json({
+                    success: true,
+                    message: 'Your exam is already in progress. You will now be redirected to resume the exam.',
+                    isResume: true,
+                    data: {
+                        sessionId: session._id,
+                        studentId: student._id,
+                        fullName: student.fullName,
+                        startTime: session.startTime,
+                        endTime: session.endTime,
+                        status: session.status,
+                        totalQuestions
+                    }
+                });
+            }
+        }
+
+        // Case 1 — No record found: Create new
+        student = await Student.create({
             fullName,
-            email: email.toLowerCase().trim(),
-            phone: phone.trim(),
+            email: normalizedEmail,
+            phone: normalizedPhone,
             qualification,
+            state,
             city,
             consent
-        }], { session });
+        });
 
-        // Calculate exam times (server-authoritative)
+        // Calculate exam times
         const startTime = new Date();
         const examDurationMinutes = parseInt(process.env.EXAM_DURATION_MINUTES) || 60;
         const endTime = new Date(startTime.getTime() + examDurationMinutes * 60 * 1000);
 
-        // Create exam session
-        const examSession = await ExamSession.create([{
-            studentId: student[0]._id,
+        const examSession = await ExamSession.create({
+            studentId: student._id,
             startTime,
             endTime,
-            status: 'IN_PROGRESS',
+            status: 'not_started',
             ipAddress: req.ip || req.connection.remoteAddress
-        }], { session });
+        });
 
-        // Get total questions count
         const totalQuestions = await Question.countDocuments();
-
-        await session.commitTransaction();
 
         res.status(201).json({
             success: true,
             message: 'Registration successful',
             data: {
-                sessionId: examSession[0]._id,
-                studentId: student[0]._id,
-                fullName: student[0].fullName,
-                startTime: examSession[0].startTime,
-                endTime: examSession[0].endTime,
+                sessionId: examSession._id,
+                studentId: student._id,
+                fullName: student.fullName,
+                startTime: examSession.startTime,
+                endTime: examSession.endTime,
+                status: examSession.status,
                 totalQuestions
             }
         });
     } catch (error) {
-        await session.abortTransaction();
         console.error('Registration error:', error);
-
-        // Handle duplicate key errors
         if (error.code === 11000) {
-            const field = Object.keys(error.keyPattern || {})[0];
             return res.status(409).json({
                 success: false,
-                message: 'Test already taken.',
-                reason: `This ${field} has already been used for registration.`,
+                message: 'You have already attempted this exam using this email or mobile number.',
                 duplicateAttempt: true
             });
         }
-
         res.status(500).json({
             success: false,
             message: 'Registration failed. Please try again.'
         });
-    } finally {
-        session.endSession();
+    }
+};
+
+// @desc    Start exam activity
+// @route   POST /api/start-exam
+// @access  Public
+const startExamActivity = async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        const session = await ExamSession.findById(sessionId);
+
+        if (!session) {
+            return res.status(404).json({ success: false, message: 'Session not found' });
+        }
+
+        if (session.status === 'not_started') {
+            session.status = 'in_progress';
+            // We can also reset startTime here if we want the 60 mins to start exactly now
+            const examDurationMinutes = parseInt(process.env.EXAM_DURATION_MINUTES) || 60;
+            session.startTime = new Date();
+            session.endTime = new Date(session.startTime.getTime() + examDurationMinutes * 60 * 1000);
+            await session.save();
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Exam started',
+            data: {
+                status: session.status,
+                startTime: session.startTime,
+                endTime: session.endTime
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to start exam' });
     }
 };
 
@@ -87,13 +152,16 @@ const getQuestions = async (req, res) => {
     try {
         const questions = await Question.find()
             .select('-correctOption -__v') // Exclude correct answer
-            .sort({ section: 1, questionNumber: 1 })
+            .sort({ questionNumber: 1 })
             .lean();
 
-        // Group questions by section
+        // Group questions by section for structured display if needed
         const groupedQuestions = {
-            RC: questions.filter(q => q.section === 'RC'),
-            LEGAL: questions.filter(q => q.section === 'LEGAL')
+            GK: questions.filter(q => q.section === 'GK'),
+            LOGICAL: questions.filter(q => q.section === 'LOGICAL'),
+            QUANT: questions.filter(q => q.section === 'QUANT'),
+            LEGAL: questions.filter(q => q.section === 'LEGAL'),
+            RC: questions.filter(q => q.section === 'RC')
         };
 
         res.status(200).json({
@@ -189,7 +257,7 @@ const submitExam = async (req, res) => {
         }
 
         // Check if already submitted
-        if (session.status === 'SUBMITTED') {
+        if (session.status === 'submitted') {
             return res.status(400).json({
                 success: false,
                 message: 'Exam already submitted',
@@ -204,9 +272,9 @@ const submitExam = async (req, res) => {
         const score = correctAnswers;
 
         // Update session
-        session.status = 'SUBMITTED';
+        session.status = 'submitted';
         session.score = score;
-        session.submittedAt = new Date();
+        session.submittedAt = session.submittedAt || new Date(); // Use existing if auto-submitted
         await session.save();
 
         // Send email to admin (non-blocking)
@@ -225,7 +293,9 @@ const submitExam = async (req, res) => {
             success: true,
             message: 'Exam submitted successfully',
             data: {
-                submittedAt: session.submittedAt
+                submittedAt: session.submittedAt,
+                score: score,
+                totalQuestions: totalQuestions
             }
         });
     } catch (error) {
@@ -262,12 +332,45 @@ const getSessionStatus = async (req, res) => {
             });
         }
 
+        // Fail-safe: If time is up but still in progress, auto-submit on server
+        if (session.status !== 'submitted' && new Date() > new Date(session.endTime)) {
+            console.log(`Auto-closing session ${sessionId} due to expiration`);
+
+            // Calculate score for existing responses
+            const responses = await Response.find({ sessionId }).lean();
+            const correctAnswers = responses.filter(r => r.isCorrect).length;
+            const score = correctAnswers;
+
+            // Mark as submitted
+            const updatedSession = await ExamSession.findByIdAndUpdate(sessionId, {
+                status: 'submitted',
+                score: score,
+                submittedAt: session.endTime // Use end time as submission time
+            }, { new: true }).populate('studentId', 'fullName email');
+
+            return res.status(200).json({
+                success: true,
+                data: {
+                    sessionId: updatedSession._id,
+                    studentName: updatedSession.studentId.fullName,
+                    status: updatedSession.status,
+                    startTime: updatedSession.startTime,
+                    endTime: updatedSession.endTime,
+                    remainingTime: 0,
+                    savedAnswers: responses.length,
+                    isExpired: true,
+                    autoSubmitted: true
+                }
+            });
+        }
+
         // Get saved responses count
         const savedAnswersCount = await Response.countDocuments({ sessionId });
 
         // Calculate remaining time
         const now = new Date();
-        const remainingSeconds = Math.max(0, Math.floor((new Date(session.endTime) - now) / 1000));
+        const endTime = new Date(session.endTime);
+        const remainingSeconds = Math.max(0, Math.floor((endTime - now) / 1000));
 
         res.status(200).json({
             success: true,
@@ -293,6 +396,7 @@ const getSessionStatus = async (req, res) => {
 
 module.exports = {
     registerStudent,
+    startExamActivity,
     getQuestions,
     saveAnswer,
     submitExam,

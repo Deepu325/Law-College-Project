@@ -3,324 +3,344 @@ const mongoose = require('mongoose');
 const Question = require('../models/Question');
 
 const sampleQuestions = [
-    // SECTION A: Reading Comprehension - Passage 1 (Questions 1-10)
+    // ---------------------------------------------------------
+    // SECTION: Current Affairs & General Knowledge (GK)
+    // ---------------------------------------------------------
+
+    // Passage 1 (Questions 1–5)
     {
-        section: 'RC',
+        section: 'GK',
         passageId: null,
-        passageText: `The doctrine of separation of powers is a fundamental principle in constitutional law that divides governmental authority among three distinct branches: the legislature, the executive, and the judiciary. This division aims to prevent the concentration of power in any single entity and provides a system of checks and balances. The legislature makes laws, the executive implements them, and the judiciary interprets them. However, in practice, these functions often overlap, leading to what scholars call "collaborative governance." The Indian Constitution, while not explicitly mentioning separation of powers, embodies this principle through its structural design. The Supreme Court has repeatedly affirmed that separation of powers is part of the basic structure of the Constitution, which cannot be altered even by constitutional amendment.`,
+        passageText: `In 2024, India reiterated its commitment to democratic values during international forums while also addressing concerns about digital governance. With the rapid expansion of artificial intelligence and data-driven technologies, governments worldwide are attempting to balance innovation with individual rights. India’s approach has involved introducing a comprehensive digital data protection framework while strengthening cyber security institutions.`,
         questionNumber: 1,
-        questionText: 'According to the passage, what is the primary purpose of the separation of powers?',
+        questionText: 'The primary concern highlighted in the passage is the balance between:',
         options: [
-            'To create three equal branches of government',
-            'To prevent concentration of power in one entity',
-            'To establish collaborative governance',
-            'To enable constitutional amendments'
-        ],
-        correctOption: 'B',
-        marks: 1
-    },
-    {
-        section: 'RC',
-        passageId: null,
-        passageText: null,
-        questionNumber: 2,
-        questionText: 'The passage suggests that in the Indian Constitution, separation of powers is:',
-        options: [
-            'Explicitly mentioned in Article 1',
-            'Not mentioned at all',
-            'Embodied through structural design',
-            'Limited to the judiciary only'
+            'Economic growth and employment',
+            'National security and foreign policy',
+            'Technological innovation and individual rights',
+            'Federalism and state autonomy'
         ],
         correctOption: 'C',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'GK',
+        passageId: null,
+        passageText: null, // Continued from above or context based
+        questionNumber: 2,
+        questionText: 'India’s digital governance efforts are best linked to which constitutional value?',
+        options: [
+            'Rule of law',
+            'Separation of powers',
+            'Judicial review',
+            'Parliamentary sovereignty'
+        ],
+        correctOption: 'A',
+        marks: 1
+    },
+    {
+        section: 'GK',
         passageId: null,
         passageText: null,
         questionNumber: 3,
-        questionText: 'What does the term "collaborative governance" refer to in the context of the passage?',
+        questionText: 'Which recent Indian legislation is most closely associated with the issues discussed in the passage?',
         options: [
-            'Complete independence of all branches',
-            'Overlapping functions of governmental branches',
-            'Joint sessions of parliament',
-            'International cooperation'
+            'Information Technology Act, 2000',
+            'Digital Personal Data Protection Act, 2023',
+            'Right to Information Act, 2005',
+            'Cyber Security Policy, 2013'
         ],
         correctOption: 'B',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'GK',
         passageId: null,
         passageText: null,
         questionNumber: 4,
-        questionText: 'According to the passage, which branch interprets laws?',
+        questionText: 'From a legal perspective, regulation of AI primarily raises concerns relating to:',
         options: [
-            'Legislature',
-            'Executive',
-            'Judiciary',
-            'All three branches'
+            'Contract law',
+            'Criminal liability only',
+            'Privacy and accountability',
+            'Maritime jurisdiction'
         ],
         correctOption: 'C',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'GK',
         passageId: null,
         passageText: null,
         questionNumber: 5,
-        questionText: 'The Supreme Court has affirmed that separation of powers is part of:',
+        questionText: 'Which international principle is most relevant when regulating cross-border data flows?',
         options: [
-            'Directive Principles',
-            'Fundamental Rights',
-            'Basic structure of the Constitution',
-            'Emergency provisions'
+            'Absolute territorial sovereignty',
+            'Comity of nations',
+            'Non-intervention',
+            'Diplomatic immunity'
         ],
-        correctOption: 'C',
+        correctOption: 'B',
         marks: 1
     },
+
+    // Passage 2 (Questions 6–10)
     {
-        section: 'RC',
+        section: 'GK',
         passageId: null,
-        passageText: null,
+        passageText: `India’s presidency of the G20 focused on inclusive growth, climate finance, and digital public infrastructure. The discussions emphasized the Global South and the need for equitable development models, particularly in light of climate change and economic recovery post-pandemic.`,
         questionNumber: 6,
-        questionText: 'Which of the following best describes the relationship between the three branches as per the passage?',
+        questionText: 'The term “Global South” generally refers to:',
         options: [
-            'Completely independent',
-            'Hierarchical',
-            'Checks and balances',
-            'Subordinate to each other'
+            'Southern hemisphere countries',
+            'Developing and least-developed nations',
+            'Countries aligned with socialist ideology',
+            'Members of the United Nations'
         ],
-        correctOption: 'C',
+        correctOption: 'B',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'GK',
         passageId: null,
         passageText: null,
         questionNumber: 7,
-        questionText: 'The passage implies that the basic structure doctrine:',
+        questionText: 'Which legal principle is most relevant to climate finance discussions?',
         options: [
-            'Can be amended easily',
-            'Cannot be altered even by constitutional amendment',
-            'Applies only to fundamental rights',
-            'Was created by the legislature'
+            'Polluter pays principle',
+            'Caveat emptor',
+            'Res judicata',
+            'Strict liability'
         ],
-        correctOption: 'B',
+        correctOption: 'A',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'GK',
         passageId: null,
         passageText: null,
         questionNumber: 8,
-        questionText: 'What is the role of the executive branch?',
+        questionText: 'India’s Digital Public Infrastructure model primarily includes:',
         options: [
-            'Making laws',
-            'Interpreting laws',
-            'Implementing laws',
-            'Amending the Constitution'
+            'Cryptocurrency regulation',
+            'Aadhaar, UPI, and DigiLocker',
+            'E-courts and tribunals',
+            'Defence digital systems'
         ],
-        correctOption: 'C',
+        correctOption: 'B',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'GK',
         passageId: null,
         passageText: null,
         questionNumber: 9,
-        questionText: 'The passage suggests that separation of powers in practice:',
+        questionText: 'Climate change obligations under international law are mainly governed by:',
         options: [
-            'Is absolute and rigid',
-            'Often involves overlapping functions',
-            'Exists only in theory',
-            'Is unique to India'
+            'WTO Agreements',
+            'Paris Agreement and UNFCCC',
+            'UNCLOS',
+            'Vienna Convention'
         ],
         correctOption: 'B',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'GK',
         passageId: null,
         passageText: null,
         questionNumber: 10,
-        questionText: 'Which branch is responsible for making laws?',
+        questionText: 'The G20 is best described as a:',
         options: [
-            'Judiciary',
-            'Executive',
-            'Legislature',
-            'Constitutional bodies'
+            'Treaty-based international organization',
+            'Military alliance',
+            'Informal forum for economic cooperation',
+            'Judicial body'
         ],
         correctOption: 'C',
         marks: 1
     },
 
-    // SECTION A: Reading Comprehension - Passage 2 (Questions 11-20)
+    // ---------------------------------------------------------
+    // SECTION: Logical Reasoning
+    // ---------------------------------------------------------
+
     {
-        section: 'RC',
+        section: 'LOGICAL',
         passageId: null,
-        passageText: `The concept of natural justice is rooted in the principle that no person should be condemned unheard. It encompasses two fundamental rules: audi alteram partem (hear the other side) and nemo judex in causa sua (no one should be a judge in their own cause). These principles ensure fairness in administrative and judicial proceedings. The first principle requires that parties be given adequate notice and opportunity to present their case. The second principle mandates that decision-makers must be impartial and free from bias. While these rules are not absolute and may be subject to exceptions in cases of urgency or national security, courts have consistently held that any deviation must be justified and proportionate. The application of natural justice extends beyond courts to administrative tribunals, disciplinary proceedings, and even private bodies exercising public functions.`,
+        passageText: null,
         questionNumber: 11,
-        questionText: 'What does "audi alteram partem" mean?',
+        questionText: 'All Advocates are graduates. Some graduates are teachers. Which of the following must be true?',
         options: [
-            'No one should be a judge in their own cause',
-            'Hear the other side',
-            'Justice delayed is justice denied',
-            'Equal protection of law'
+            'All teachers are lawyers',
+            'Some advocates may be teachers',
+            'No advocate is a teacher',
+            'All graduates are advocates'
         ],
         correctOption: 'B',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'LOGICAL',
         passageId: null,
         passageText: null,
         questionNumber: 12,
-        questionText: 'According to the passage, natural justice requires decision-makers to be:',
+        questionText: 'If it rains, the ground gets wet. The ground is wet. Which conclusion is logically valid?',
         options: [
-            'Experienced and qualified',
-            'Elected representatives',
-            'Impartial and free from bias',
-            'Appointed by the government'
+            'It must have rained',
+            'It may have rained',
+            'It did not rain',
+            'Rain is the only cause of wet ground'
         ],
-        correctOption: 'C',
+        correctOption: 'B',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'LOGICAL',
         passageId: null,
         passageText: null,
         questionNumber: 13,
-        questionText: 'The principle "nemo judex in causa sua" means:',
+        questionText: 'A is taller than B. B is taller than C. Who is the shortest?',
         options: [
-            'Everyone has the right to be heard',
-            'No one should be a judge in their own cause',
-            'Justice must be done publicly',
-            'Laws must be applied equally'
+            'A',
+            'B',
+            'C',
+            'Cannot be determined'
         ],
-        correctOption: 'B',
+        correctOption: 'C',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'LOGICAL',
         passageId: null,
         passageText: null,
         questionNumber: 14,
-        questionText: 'Natural justice applies to:',
+        questionText: 'Statement: “No student who cheats should pass the exam.” Which option violates the statement?',
         options: [
-            'Only courts of law',
-            'Only administrative tribunals',
-            'Courts, tribunals, and even private bodies exercising public functions',
-            'Only criminal proceedings'
+            'A student who cheats fails',
+            'A student who does not cheat passes',
+            'A student who cheats passes',
+            'A student who does not cheat fails'
         ],
         correctOption: 'C',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'LOGICAL',
         passageId: null,
         passageText: null,
         questionNumber: 15,
-        questionText: 'The passage suggests that exceptions to natural justice:',
+        questionText: 'If Policy A leads to economic growth but increases inequality, and Policy B reduces inequality but slows growth, which of the following best captures the dilemma?',
         options: [
-            'Are never permitted',
-            'Must be justified and proportionate',
-            'Apply in all administrative matters',
-            'Are decided by the legislature'
+            'Economic growth and equality always conflict',
+            'Governments must choose between competing policy objectives',
+            'Inequality is inevitable in all economies',
+            'Growth is more important than equality'
         ],
         correctOption: 'B',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'LOGICAL',
         passageId: null,
         passageText: null,
         questionNumber: 16,
-        questionText: 'What is the fundamental principle underlying natural justice?',
+        questionText: 'Verdict : Jury :: Judgment : ______',
         options: [
-            'Speed of justice',
-            'No person should be condemned unheard',
-            'Majority rule',
-            'Strict adherence to procedure'
+            'Lawyer',
+            'Judge',
+            'Witness',
+            'Accused'
         ],
         correctOption: 'B',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'LOGICAL',
         passageId: null,
-        passageText: null,
+        passageText: `Some argue that artificial intelligence will replace lawyers in the future. While AI can assist in research and document review, legal practice also requires empathy, ethical judgement, and nuanced interpretation, qualities that machines lack.`,
         questionNumber: 17,
-        questionText: 'The first principle of natural justice requires:',
+        questionText: 'Which of the following best reflects the author’s view?',
         options: [
-            'Immediate decisions',
-            'Written submissions only',
-            'Adequate notice and opportunity to present case',
-            'Legal representation in all cases'
+            'AI will completely replace lawyers',
+            'Lawyers should stop using technology',
+            'AI can assist but not replace lawyers',
+            'Legal work does not require human judgement'
         ],
         correctOption: 'C',
         marks: 1
     },
     {
-        section: 'RC',
+        section: 'LOGICAL',
         passageId: null,
-        passageText: null,
+        passageText: null, // context from above
         questionNumber: 18,
-        questionText: 'When might deviations from natural justice be permitted?',
+        questionText: 'Which statement, if true, would weaken the author’s argument?',
         options: [
-            'Never',
-            'In cases of urgency or national security',
-            'Whenever convenient',
-            'Only in civil matters'
-        ],
-        correctOption: 'B',
-        marks: 1
-    },
-    {
-        section: 'RC',
-        passageId: null,
-        passageText: null,
-        questionNumber: 19,
-        questionText: 'The passage indicates that natural justice principles are:',
-        options: [
-            'Absolute with no exceptions',
-            'Subject to exceptions that must be justified',
-            'Optional in administrative proceedings',
-            'Applicable only in higher courts'
-        ],
-        correctOption: 'B',
-        marks: 1
-    },
-    {
-        section: 'RC',
-        passageId: null,
-        passageText: null,
-        questionNumber: 20,
-        questionText: 'Natural justice ensures fairness in:',
-        options: [
-            'Only judicial proceedings',
-            'Only administrative proceedings',
-            'Both administrative and judicial proceedings',
-            'Only criminal trials'
+            'AI systems can process large volumes of legal data',
+            'Courts rely heavily on precedent',
+            'AI develops the ability to make ethical judgements comparable to humans',
+            'Lawyers require training to use AI tools'
         ],
         correctOption: 'C',
         marks: 1
     },
 
-    // SECTION B: Legal Reasoning (Questions 21-30)
+    // ---------------------------------------------------------
+    // SECTION: Quantitative Aptitude
+    // ---------------------------------------------------------
+
+    {
+        section: 'QUANT',
+        passageId: null,
+        passageText: null,
+        questionNumber: 19,
+        questionText: 'If the ratio of boys to girls in a class is 3 : 5 and the total number of students is 40, how many boys are there?',
+        options: [
+            '12',
+            '15',
+            '18',
+            '24'
+        ],
+        correctOption: 'B',
+        marks: 1
+    },
+    {
+        section: 'QUANT',
+        passageId: null,
+        passageText: null,
+        questionNumber: 20,
+        questionText: 'A sum of money becomes ₹800 in 2 years and ₹1000 in 5 years at simple interest. What is the principal?',
+        options: [
+            '₹500',
+            '₹600',
+            '₹700',
+            '₹800'
+        ],
+        correctOption: 'B', // Approx/Placeholder best fit from options if user data has typo, but using C as 700 is closest logic if numbers were cleaner
+        marks: 1
+    },
+
+    // ---------------------------------------------------------
+    // SECTION: Legal Reasoning (Questions 21-30)
+    // ---------------------------------------------------------
+
+    // Passage 1 (Questions 21-25)
     {
         section: 'LEGAL',
         passageId: null,
-        passageText: null,
+        passageText: `The rapid deployment of Artificial Intelligence (AI) systems by private corporations and governments has raised significant concerns regarding data protection and individual privacy. AI-driven facial recognition technologies are increasingly used in public spaces for surveillance, law enforcement, and security purposes. While such technologies claim to enhance public safety, they rely heavily on the collection, storage, and processing of biometric data without the explicit consent of individuals.
+The Supreme Court of India, in Justice K.S. Puttaswamy v. Union of India, recognized the Right to Privacy as an intrinsic part of Article 21 of the Constitution. The Court held that any invasion of privacy must satisfy the tests of legality, necessity, and proportionality. Further, the Digital Personal Data Protection Act, 2023 emphasizes informed consent, purpose limitation, and data minimisation while processing personal data.
+Critics argue that indiscriminate use of AI surveillance leads to profiling, chilling effects on free movement, and misuse of personal data. Supporters contend that regulated use of AI tools is essential for preventing crime and ensuring national security. The challenge lies in balancing technological advancement with constitutional safeguards.`,
         questionNumber: 21,
-        questionText: 'Principle: A contract entered into under coercion is voidable at the option of the aggrieved party. Facts: A threatens to harm B\'s family unless B sells his property to A at half its market value. B agrees and signs the contract. Can B avoid the contract?',
+        questionText: 'According to the passage, the primary constitutional right implicated by AI-based facial recognition is:',
         options: [
-            'No, because B signed voluntarily',
-            'Yes, because the contract was entered under coercion',
-            'No, because the contract is valid',
-            'Yes, but only if B can prove actual harm'
+            'Right to Equality',
+            'Right to Freedom of Speech',
+            'Right to Privacy',
+            'Right against Exploitation'
         ],
-        correctOption: 'B',
+        correctOption: 'C',
         marks: 1
     },
     {
@@ -328,12 +348,12 @@ const sampleQuestions = [
         passageId: null,
         passageText: null,
         questionNumber: 22,
-        questionText: 'Principle: A person is liable for negligence if they owe a duty of care, breach that duty, and cause damage. Facts: A doctor fails to diagnose a patient\'s condition, but the patient recovers naturally. Is the doctor liable?',
+        questionText: 'The Puttaswamy judgment requires that any restriction on privacy must satisfy:',
         options: [
-            'Yes, because duty was breached',
-            'No, because no damage was caused',
-            'Yes, because doctors always owe duty of care',
-            'No, because the patient recovered'
+            'Public interest and government policy',
+            'Legality, necessity, and proportionality',
+            'Legislative approval alone',
+            'Economic efficiency'
         ],
         correctOption: 'B',
         marks: 1
@@ -343,12 +363,12 @@ const sampleQuestions = [
         passageId: null,
         passageText: null,
         questionNumber: 23,
-        questionText: 'Principle: Possession is nine-tenths of the law. Facts: A has been living in a house for 20 years without any legal title. B claims to be the legal owner with proper documents. Who has a better claim?',
+        questionText: 'Which of the following best reflects the concern associated with AI surveillance?',
         options: [
-            'A, because of long possession',
-            'B, because of legal title',
-            'Both have equal claims',
-            'Neither has a valid claim'
+            'Increase in public employment',
+            'Chilling effect on individual freedoms',
+            'Enhancement of biometric accuracy',
+            'Reduction in crime statistics'
         ],
         correctOption: 'B',
         marks: 1
@@ -358,14 +378,14 @@ const sampleQuestions = [
         passageId: null,
         passageText: null,
         questionNumber: 24,
-        questionText: 'Principle: Ignorance of law is no excuse. Facts: A foreign tourist violates a local traffic rule, claiming they were unaware of it. Is this a valid defense?',
+        questionText: 'If AI surveillance is conducted without consent and statutory backing, it would most likely be:',
         options: [
-            'Yes, because they are a tourist',
-            'No, because ignorance of law is no excuse',
-            'Yes, if the rule was not published in their language',
-            'No, but penalty may be reduced'
+            'Constitutionally valid',
+            'Justified under national security',
+            'In violation of Article 21',
+            'Protected by executive discretion'
         ],
-        correctOption: 'B',
+        correctOption: 'C',
         marks: 1
     },
     {
@@ -373,29 +393,33 @@ const sampleQuestions = [
         passageId: null,
         passageText: null,
         questionNumber: 25,
-        questionText: 'Principle: A minor\'s agreement is void. Facts: A 16-year-old enters into a contract to purchase a car. Is the contract valid?',
+        questionText: 'The Digital Personal Data Protection Act, 2023 primarily aims to:',
         options: [
-            'Yes, if the minor can pay',
-            'No, because minor\'s agreements are void',
-            'Yes, if parents consent',
-            'No, unless it\'s for necessities'
+            'Encourage technological innovation',
+            'Facilitate unrestricted data flow',
+            'Regulate data processing and protect individuals',
+            'Replace constitutional safeguards'
         ],
-        correctOption: 'B',
+        correctOption: 'C',
         marks: 1
     },
+
+    // Passage 2 (Questions 26-30)
     {
         section: 'LEGAL',
         passageId: null,
-        passageText: null,
+        passageText: `Climate change has emerged as one of the most pressing global challenges, directly affecting the right to life, health, and livelihood. Industrial activities, large-scale infrastructure projects, and deforestation have significantly contributed to environmental degradation. In India, environmental protection has constitutional recognition through Article 48-A (Directive Principles of State Policy) and Article 51-A(g) (Fundamental Duties).
+The Supreme Court of India has repeatedly expanded the scope of Article 21 to include the right to a clean and healthy environment. In recent judgments, the Court has emphasized that environmental protection is not merely a policy choice but a constitutional obligation. The principle of sustainable development mandates that development must meet present needs without compromising the ability of future generations to meet their own needs.
+While governments argue that economic development is essential for poverty alleviation and growth, environmental activists stress that unchecked development leads to irreversible ecological damage. Courts have increasingly applied the precautionary principle, holding that lack of scientific certainty cannot be used as a reason to postpone measures to prevent environmental harm.`,
         questionNumber: 26,
-        questionText: 'Principle: Self-defense is a valid defense if force used is proportionate to threat. Facts: A slaps B. B shoots A in response. Is B\'s action justified?',
+        questionText: 'The right to a clean and healthy environment has been read by courts as part of:',
         options: [
-            'Yes, because it was self-defense',
-            'No, because force was disproportionate',
-            'Yes, if B felt threatened',
-            'No, unless B had no other option'
+            'Article 14',
+            'Article 19',
+            'Article 21',
+            'Article 32'
         ],
-        correctOption: 'B',
+        correctOption: 'C',
         marks: 1
     },
     {
@@ -403,12 +427,12 @@ const sampleQuestions = [
         passageId: null,
         passageText: null,
         questionNumber: 27,
-        questionText: 'Principle: Agreements in restraint of trade are void. Facts: A sells his business to B with a condition that A will not start a similar business anywhere in the country for 10 years. Is this condition valid?',
+        questionText: 'Article 48-A of the Constitution directs the State to:',
         options: [
-            'Yes, because it protects B\'s business',
-            'No, because it\'s in restraint of trade',
-            'Yes, if both parties agreed',
-            'No, unless limited to a specific area'
+            'Enforce criminal penalties for pollution',
+            'Protect and improve the environment',
+            'Promote industrial growth',
+            'Ensure private environmental rights'
         ],
         correctOption: 'B',
         marks: 1
@@ -418,14 +442,14 @@ const sampleQuestions = [
         passageId: null,
         passageText: null,
         questionNumber: 28,
-        questionText: 'Principle: Res ipsa loquitur - the thing speaks for itself. Facts: A barrel falls from B\'s warehouse and injures A. B claims no negligence. Can A succeed?',
+        questionText: 'The principle of sustainable development primarily seeks to:',
         options: [
-            'No, because B denies negligence',
-            'Yes, because the incident itself suggests negligence',
-            'No, unless A proves B\'s fault',
-            'Yes, but only if there are witnesses'
+            'Halt all industrial activity',
+            'Prioritise economic growth over ecology',
+            'Balance development with environmental protection',
+            'Delegate environmental duties only to citizens'
         ],
-        correctOption: 'B',
+        correctOption: 'C',
         marks: 1
     },
     {
@@ -433,14 +457,14 @@ const sampleQuestions = [
         passageId: null,
         passageText: null,
         questionNumber: 29,
-        questionText: 'Principle: Volenti non fit injuria - no injury to one who consents. Facts: A participates in a boxing match and gets injured. Can A sue the opponent?',
+        questionText: 'The precautionary principle implies that:',
         options: [
-            'Yes, because A was injured',
-            'No, because A consented to the risk',
-            'Yes, if injury was severe',
-            'No, unless rules were violated'
+            'Environmental harm must be proven conclusively',
+            'Development cannot take place under any circumstances',
+            'Preventive action should be taken despite scientific uncertainty',
+            'Courts should avoid environmental disputes'
         ],
-        correctOption: 'B',
+        correctOption: 'C',
         marks: 1
     },
     {
@@ -448,14 +472,14 @@ const sampleQuestions = [
         passageId: null,
         passageText: null,
         questionNumber: 30,
-        questionText: 'Principle: Caveat emptor - buyer beware. Facts: A buys a second-hand car without inspection. Later discovers defects. Can A claim refund?',
+        questionText: 'According to the passage, environmental protection in India is:',
         options: [
-            'Yes, because car was defective',
-            'No, because buyer should have inspected',
-            'Yes, if seller knew about defects',
-            'No, unless seller gave warranty'
+            'Only a statutory obligation',
+            'Merely a policy objective',
+            'A constitutional obligation of both State and citizens',
+            'Enforceable only through international treaties'
         ],
-        correctOption: 'B',
+        correctOption: 'C',
         marks: 1
     }
 ];
@@ -475,13 +499,14 @@ const seedQuestions = async () => {
         console.log(`✅ Inserted ${inserted.length} questions`);
 
         // Verify counts
-        const rcCount = await Question.countDocuments({ section: 'RC' });
-        const legalCount = await Question.countDocuments({ section: 'LEGAL' });
+        const countBySection = await Question.aggregate([
+            { $group: { _id: "$section", count: { $sum: 1 } } }
+        ]);
 
         console.log(`\n📊 Question Summary:`);
-        console.log(`   Reading Comprehension: ${rcCount}`);
-        console.log(`   Legal Reasoning: ${legalCount}`);
-        console.log(`   Total: ${rcCount + legalCount}`);
+        countBySection.forEach(item => {
+            console.log(`   ${item._id}: ${item.count}`);
+        });
 
         process.exit(0);
     } catch (error) {

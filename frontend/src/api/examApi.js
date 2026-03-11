@@ -9,6 +9,11 @@ export const registerStudent = async (formData) => {
     return response.data;
 };
 
+export const startExam = async (sessionId) => {
+    const response = await apiClient.post('/start-exam', { sessionId });
+    return response.data;
+};
+
 export const getQuestions = async () => {
     const response = await apiClient.get('/questions');
     return response.data;

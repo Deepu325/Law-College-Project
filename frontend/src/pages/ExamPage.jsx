@@ -4,6 +4,7 @@ import { useExam } from '../context/ExamContext';
 import { Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import ConfirmationModal from '../components/ConfirmationModal';
 import AntiCheatAlert from '../components/AntiCheatAlert';
+import InstructionsModal from '../components/InstructionsModal';
 
 const ExamPage = () => {
     const navigate = useNavigate();
@@ -22,6 +23,11 @@ const ExamPage = () => {
         goToQuestion,
         nextQuestion,
         previousQuestion,
+        isSubmitted,
+        isLocked,
+        isSyncing,
+        hasStarted,
+        startExam
     } = useExam();
 
     const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -48,15 +54,30 @@ const ExamPage = () => {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, []);
 
-    // Anti-Cheat: Disable Right Click
+    // Anti-Cheat: Disable Right Click, Copy, Paste, Cut
     useEffect(() => {
         const handleContextMenu = (e) => {
             e.preventDefault();
             return false;
         };
 
+        const handleCopyPaste = (e) => {
+            e.preventDefault();
+            console.warn('Security Warning: Copy/Paste/Cut is disabled during the exam.');
+            return false;
+        };
+
         document.addEventListener('contextmenu', handleContextMenu);
-        return () => document.removeEventListener('contextmenu', handleContextMenu);
+        document.addEventListener('copy', handleCopyPaste);
+        document.addEventListener('paste', handleCopyPaste);
+        document.addEventListener('cut', handleCopyPaste);
+
+        return () => {
+            document.removeEventListener('contextmenu', handleContextMenu);
+            document.removeEventListener('copy', handleCopyPaste);
+            document.removeEventListener('paste', handleCopyPaste);
+            document.removeEventListener('cut', handleCopyPaste);
+        };
     }, []);
 
     // Format time display
@@ -131,7 +152,7 @@ const ExamPage = () => {
                         <div className="flex items-center gap-4">
                             <div className="bg-brand-purple text-white w-10 h-10 rounded flex items-center justify-center font-bold text-xl uppercase tracking-tighter shadow-sm">Sc</div>
                             <div>
-                                <h1 className="text-xl font-heading font-bold text-brand-purple leading-tight">S-CLAT Examination</h1>
+                                <h1 className="text-xl font-heading font-bold text-brand-purple leading-tight">SLET Examination</h1>
                                 <p className="text-xs text-text-body font-medium uppercase tracking-wider">{sessionData?.fullName}</p>
                             </div>
                         </div>
@@ -139,7 +160,12 @@ const ExamPage = () => {
                         <div className="flex items-center gap-8">
                             {/* Auto-save indicator */}
                             <div className="hidden md:flex items-center gap-2">
-                                {saving ? (
+                                {isSyncing ? (
+                                    <div className="flex items-center gap-2 text-brand-purple text-sm font-medium">
+                                        <div className="w-2 h-2 bg-brand-purple rounded-full animate-spin"></div>
+                                        <span>Syncing...</span>
+                                    </div>
+                                ) : saving ? (
                                     <div className="flex items-center gap-2 text-success-green text-sm font-medium">
                                         <div className="w-2 h-2 bg-success-green rounded-full animate-pulse"></div>
                                         <span>Saving...</span>
@@ -153,10 +179,10 @@ const ExamPage = () => {
                             </div>
 
                             {/* Timer */}
-                            <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 shadow-sm min-w-[120px] justify-center">
+                            <div className={`flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 shadow-sm min-w-[120px] justify-center ${isLocked ? 'opacity-50' : ''}`}>
                                 <Clock className={`w-5 h-5 ${remainingTime <= 60 ? 'text-error-red' : 'text-brand-purple'}`} />
                                 <span className={`text-xl font-mono tabular-nums ${getTimerClass()}`}>
-                                    {formatTime(remainingTime)}
+                                    {isLocked ? '00:00' : formatTime(remainingTime)}
                                 </span>
                             </div>
                         </div>
@@ -165,23 +191,29 @@ const ExamPage = () => {
             </div>
 
             {/* Main Content */}
-            <div className="container mx-auto px-4 py-8">
+            <div className={`container mx-auto px-4 py-8 ${isLocked ? 'pointer-events-none grayscale-[0.5]' : ''}`}>
                 <div className="grid lg:grid-cols-4 gap-6">
                     {/* Question Area */}
                     <div className="lg:col-span-3">
                         <div className="card-exam bg-white shadow-lg overflow-hidden border-t-2 border-brand-purple">
                             {/* Section Header */}
-                            <div className="bg-purple-50 px-6 py-4 border-b border-purple-100 flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                    <span className="bg-brand-purple text-white px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-widest">
+                            <div className="bg-purple-50 px-6 py-5 border-b border-purple-100 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="bg-brand-purple text-white px-4 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.2em] shadow-sm flex-shrink-0">
                                         Section {currentQuestion.section}
                                     </span>
-                                    <div className="h-4 w-px bg-purple-200"></div>
-                                    <h2 className="text-sm font-bold text-brand-purple">
-                                        {currentQuestion.section === 'RC' ? 'Reading Comprehension' : 'Legal Reasoning'}
+                                    <div className="h-6 w-px bg-purple-200 hidden md:block"></div>
+                                    <h2 className="text-xl md:text-2xl font-bold text-brand-purple tracking-tight">
+                                        {
+                                            currentQuestion.section === 'GK' ? 'Current Affairs & General Knowledge' :
+                                                currentQuestion.section === 'LOGICAL' ? 'Logical Reasoning' :
+                                                    currentQuestion.section === 'QUANT' ? 'Quantitative Aptitude' :
+                                                        currentQuestion.section === 'LEGAL' ? 'Legal Reading Comprehension' :
+                                                            currentQuestion.section === 'RC' ? 'Reading Comprehension' : 'Examination'
+                                        }
                                     </h2>
                                 </div>
-                                <div className="text-sm font-bold text-text-dark">
+                                <div className="bg-white/50 px-4 py-2 rounded-lg border border-purple-100 text-sm font-bold text-text-dark shadow-sm inline-block self-start md:self-auto">
                                     Question {currentQuestionIndex + 1} / {questions.length}
                                 </div>
                             </div>
@@ -214,7 +246,8 @@ const ExamPage = () => {
                                             <label
                                                 key={index}
                                                 className={`
-                          group flex items-center p-4 rounded-xl border-2 transition-all cursor-pointer
+                          group flex items-center p-4 rounded-xl border-2 transition-all 
+                          ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}
                           ${isSelected
                                                         ? 'bg-purple-50 border-brand-purple ring-1 ring-brand-purple'
                                                         : 'bg-white border-gray-100 hover:border-brand-purple hover:bg-gray-50'}
@@ -225,7 +258,8 @@ const ExamPage = () => {
                                                     name={`question-${currentQuestion._id}`}
                                                     value={optionLetter}
                                                     checked={isSelected}
-                                                    onChange={() => handleAnswerSelect(optionLetter)}
+                                                    onChange={() => !isLocked && handleAnswerSelect(optionLetter)}
+                                                    disabled={isLocked}
                                                     className="hidden"
                                                 />
                                                 <div className={`
@@ -246,7 +280,7 @@ const ExamPage = () => {
                                 <div className="flex items-center justify-between mt-12 pt-8 border-t border-gray-100">
                                     <button
                                         onClick={previousQuestion}
-                                        disabled={currentQuestionIndex === 0}
+                                        disabled={currentQuestionIndex === 0 || isLocked}
                                         className="btn-outline flex items-center gap-2 py-3 px-6 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50"
                                     >
                                         <span>←</span> Previous
@@ -267,14 +301,16 @@ const ExamPage = () => {
                                     {currentQuestionIndex < questions.length - 1 ? (
                                         <button
                                             onClick={nextQuestion}
-                                            className="btn-primary flex items-center gap-2 py-3 px-8 rounded-lg shadow-md"
+                                            disabled={isLocked}
+                                            className="btn-primary flex items-center gap-2 py-3 px-8 rounded-lg shadow-md disabled:opacity-50"
                                         >
                                             Next Question <span>→</span>
                                         </button>
                                     ) : (
                                         <button
                                             onClick={handleSubmitClick}
-                                            className="btn-primary bg-success-green hover:bg-green-700 py-3 px-10 rounded-lg shadow-md flex items-center gap-2"
+                                            disabled={isLocked}
+                                            className="btn-primary bg-success-green hover:bg-green-700 py-3 px-10 rounded-lg shadow-md flex items-center gap-2 disabled:opacity-50"
                                         >
                                             <CheckCircle className="w-5 h-5" />
                                             Final Submission
@@ -301,6 +337,7 @@ const ExamPage = () => {
                                     return (
                                         <button
                                             key={q._id}
+                                            disabled={isLocked}
                                             onClick={() => goToQuestion(index)}
                                             className={`
                         w-11 h-11 rounded-lg font-bold text-sm transition-all relative
@@ -310,6 +347,7 @@ const ExamPage = () => {
                                                         ? 'bg-success-green text-white hover:bg-green-700 hover:scale-105'
                                                         : 'bg-gray-100 text-text-dark hover:bg-gray-200'
                                                 }
+                        ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}
                       `}
                                         >
                                             {index + 1}
@@ -347,7 +385,8 @@ const ExamPage = () => {
 
                             <button
                                 onClick={handleSubmitClick}
-                                className="w-full btn-primary bg-brand-purple py-4 mt-6 flex items-center justify-center gap-2 rounded-lg shadow-lg"
+                                disabled={isLocked}
+                                className="w-full btn-primary bg-brand-purple py-4 mt-6 flex items-center justify-center gap-2 rounded-lg shadow-lg text-white disabled:opacity-50"
                             >
                                 <CheckCircle className="w-5 h-5" />
                                 Submit Exam
@@ -356,6 +395,15 @@ const ExamPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Auto-Submit Overlay */}
+            {isSubmitted && !showSubmitModal && (
+                <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center p-6 text-center">
+                    <div className="w-16 h-16 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mb-6"></div>
+                    <h2 className="text-2xl font-bold text-brand-purple mb-2">Time Expired!</h2>
+                    <p className="text-text-body text-lg">Your exam is being automatically submitted. Please wait...</p>
+                </div>
+            )}
 
             {/* Submit Confirmation Modal */}
             <ConfirmationModal
@@ -369,6 +417,12 @@ const ExamPage = () => {
                 cancelText="Return to Exam"
                 icon={AlertTriangle}
                 variant="warning"
+            />
+
+            {/* Rules & Instructions Modal */}
+            <InstructionsModal
+                isOpen={!hasStarted && !loading}
+                onAccept={startExam}
             />
         </div>
     );

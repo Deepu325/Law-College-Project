@@ -28,6 +28,11 @@ const studentSchema = new mongoose.Schema({
         required: [true, 'Qualification is required'],
         trim: true
     },
+    state: {
+        type: String,
+        required: [true, 'State is required'],
+        trim: true
+    },
     city: {
         type: String,
         required: [true, 'City is required'],

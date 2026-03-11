@@ -68,18 +68,16 @@ const limiter = rateLimit({
     legacyHeaders: false,
 });
 
-app.use('/api/', limiter);
-
-// Stricter rate limit for registration (prevent spam)
 const registrationLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 5, // Max 5 registration attempts per hour per IP
+    max: 1000, // High limit for development
     message: {
         success: false,
         message: 'Too many registration attempts. Please try again later.'
     }
 });
 
+app.use('/api/', limiter);
 app.use('/api/register', registrationLimiter);
 
 // MongoDB injection prevention
@@ -119,12 +117,43 @@ app.get('/health', (req, res) => {
     });
 });
 
+// TEMPORARY DEBUG ROUTE - remove after fixing
+app.get('/debug/sessions', async (req, res) => {
+    try {
+        const mongoose = require('mongoose');
+        const ExamSession = require('./models/ExamSession');
+        const db = mongoose.connection;
+
+        // Raw MongoDB query (bypasses Mongoose schema)
+        const rawSessions = await db.db.collection('examsessions').find({}).project({ status: 1 }).toArray();
+
+        // Mongoose query
+        const mongooseSessions = await ExamSession.find().select('status').lean();
+
+        // Mongoose filtered query
+        const submittedSessions = await ExamSession.countDocuments({ status: 'submitted' });
+
+        res.json({
+            dbName: db.name,
+            rawCount: rawSessions.length,
+            rawStatuses: rawSessions.map(s => s.status),
+            mongooseCount: mongooseSessions.length,
+            mongooseStatuses: mongooseSessions.map(s => s.status),
+            submittedCount: submittedSessions,
+            collectionName: ExamSession.collection.name
+        });
+    } catch (err) {
+        res.json({ error: err.message, stack: err.stack });
+    }
+});
+
 // API routes
-app.use('/api', examRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api', examRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
+    console.warn(`[404] ${req.method} ${req.originalUrl}`);
     res.status(404).json({
         success: false,
         message: 'Route not found'
@@ -148,7 +177,7 @@ const server = app.listen(PORT, () => {
     console.log(`
 ╔═══════════════════════════════════════════════════════╗
 ║                                                       ║
-║   🎓 S-CLAT Backend Server Running                   ║
+║   🎓 SLET Backend Server Running                   ║
 ║                                                       ║
 ║   Environment: ${process.env.NODE_ENV || 'development'}                              ║
 ║   Port: ${PORT}                                          ║

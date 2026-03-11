@@ -1,22 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const LandingPage = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-bg-exam">
-            {/* Header */}
-            <header className="bg-brand-purple text-white py-6 shadow-md">
-                <div className="container mx-auto px-4">
-                    <h1 className="text-3xl font-heading font-bold text-center">S-CLAT</h1>
-                    <p className="text-center text-purple-200 mt-2">Online Law Entrance Examination</p>
-                </div>
-            </header>
+        <div className="min-h-screen bg-bg-exam flex flex-col">
+            <Header showLogo={true} title="SLET" subtitle="Soundarya Law Entrance Test" />
 
             {/* Main Content */}
-            <main className="container mx-auto px-4 py-12 max-w-4xl">
+            <main className="container mx-auto px-4 py-12 max-w-4xl flex-1">
                 {/* Exam Overview Card */}
                 <div className="card-exam mb-8">
                     <h2 className="text-3xl font-heading font-bold text-brand-purple mb-6 text-center">
@@ -39,7 +35,7 @@ const LandingPage = () => {
                         <div className="text-center p-4 bg-purple-50 rounded-lg">
                             <CheckCircle className="w-12 h-12 text-brand-purple mx-auto mb-3" />
                             <h3 className="font-semibold text-lg mb-2">Sections</h3>
-                            <p className="text-text-body">RC & Legal Reasoning</p>
+                            <p className="text-text-body">GK, Logical, Quant & Legal</p>
                         </div>
                     </div>
 
@@ -49,11 +45,19 @@ const LandingPage = () => {
                         <ul className="space-y-3">
                             <li className="flex items-start">
                                 <span className="text-brand-purple mr-3">•</span>
-                                <span><strong>Section A:</strong> Reading Comprehension - 2 passages with 10 questions each (20 marks)</span>
+                                <span><strong>General Knowledge & Current Affairs:</strong> 10 Questions</span>
                             </li>
                             <li className="flex items-start">
                                 <span className="text-brand-purple mr-3">•</span>
-                                <span><strong>Section B:</strong> Legal Reasoning - 10 principle-based questions (10 marks)</span>
+                                <span><strong>Logical Reasoning:</strong> 8 Questions</span>
+                            </li>
+                            <li className="flex items-start">
+                                <span className="text-brand-purple mr-3">•</span>
+                                <span><strong>Quantitative Aptitude:</strong> 2 Questions</span>
+                            </li>
+                            <li className="flex items-start">
+                                <span className="text-brand-purple mr-3">•</span>
+                                <span><strong>Legal Reading Comprehension:</strong> 10 Questions</span>
                             </li>
                         </ul>
                     </div>
@@ -105,14 +109,26 @@ const LandingPage = () => {
                         </div>
                     </div>
 
-                    {/* Start Button */}
-                    <div className="text-center">
+                    {/* Malpractice Warning */}
+                    <div className="mb-10 p-6 bg-red-50 border border-red-200 rounded-xl flex items-start gap-4 shadow-sm">
+                        <AlertCircle className="w-6 h-6 text-error-red flex-shrink-0 mt-0.5" />
+                        <p className="text-error-red font-bold text-base leading-relaxed">
+                            Any form of malpractice, cheating, impersonation, or use of unfair means during the examination will result in immediate cancellation of the candidate’s candidature.
+                        </p>
+                    </div>
+
+                    {/* Start Button & Admission Disclaimer */}
+                    <div className="text-center flex flex-col items-center gap-6">
                         <button
                             onClick={() => navigate('/register')}
                             className="btn-primary text-lg px-12 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
                         >
                             Start Test
                         </button>
+
+                        <p className="text-sm text-gray-500 max-w-lg leading-relaxed font-medium">
+                            Qualification in the entrance test does not automatically guarantee admission. Admission is subject to fulfillment of eligibility criteria, availability of seats, and verification of documents.
+                        </p>
                     </div>
                 </div>
 
@@ -121,6 +137,8 @@ const LandingPage = () => {
                     By proceeding, you agree to the terms and conditions of this examination.
                 </p>
             </main>
+
+            <Footer />
         </div>
     );
 };

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCandidates, exportCandidates, getDashboardStats } from '../api/examApi';
 import { Download, Search, LogOut, Users, FileCheck, Clock } from 'lucide-react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -76,27 +78,21 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-bg-exam">
-            {/* Header */}
-            <div className="bg-brand-purple text-white py-6 shadow-md">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-heading font-bold">Admin Dashboard</h1>
-                            <p className="text-purple-200 mt-1">S-CLAT Examination System</p>
-                        </div>
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-2 bg-white text-brand-purple px-6 py-2 rounded-md hover:bg-gray-100 transition-colors"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div className="min-h-screen bg-bg-exam flex flex-col">
+            <Header
+                showLogo={true}
+                action={
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 bg-white text-brand-purple px-6 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                    </button>
+                }
+            />
 
-            <div className="container mx-auto px-4 py-8">
+            <div className="flex-1 container mx-auto px-4 py-8">
                 {/* Stats Cards */}
                 {stats && (
                     <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -183,7 +179,8 @@ const AdminDashboard = () => {
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
-                                        <th>Qualification</th>
+                                        <th>Course Applied</th>
+                                        <th>State</th>
                                         <th>City</th>
                                         <th>Score</th>
                                         <th>Status</th>
@@ -198,6 +195,7 @@ const AdminDashboard = () => {
                                             <td>{candidate.email}</td>
                                             <td>{candidate.phone}</td>
                                             <td>{candidate.qualification}</td>
+                                            <td>{candidate.state}</td>
                                             <td>{candidate.city}</td>
                                             <td>
                                                 <span className="font-bold text-brand-purple">
@@ -205,9 +203,9 @@ const AdminDashboard = () => {
                                                 </span>
                                             </td>
                                             <td>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${candidate.status === 'SUBMITTED'
-                                                        ? 'bg-success-green text-white'
-                                                        : 'bg-yellow-100 text-yellow-800'
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${candidate.status === 'submitted'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-yellow-100 text-yellow-800'
                                                     }`}>
                                                     {candidate.status}
                                                 </span>
@@ -226,6 +224,8 @@ const AdminDashboard = () => {
                     )}
                 </div>
             </div>
+
+            <Footer />
         </div>
     );
 };

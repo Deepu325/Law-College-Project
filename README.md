@@ -464,7 +464,7 @@ http://localhost:5173
 
 ## 📄 License & Credits
 
-**Built by**: Senior Full Stack Architect
+**Built by**: Deepu K.C
 **For**: Law College Entrance Examination
 **Stack**: MERN (MongoDB, Express, React, Node.js)
 **Timeline**: Production-ready implementation

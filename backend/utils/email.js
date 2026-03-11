@@ -2,27 +2,27 @@ const nodemailer = require('nodemailer');
 
 // Create reusable transporter
 const createTransporter = () => {
-    return nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-        }
-    });
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
 };
 
 // Send submission notification to admin
 const sendSubmissionEmail = async (candidateData) => {
-    try {
-        const transporter = createTransporter();
+  try {
+    const transporter = createTransporter();
 
-        const mailOptions = {
-            from: process.env.SMTP_USER,
-            to: process.env.ADMIN_EMAIL,
-            subject: `S-CLAT Submission: ${candidateData.fullName}`,
-            html: `
+    const mailOptions = {
+      from: process.env.SMTP_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: `SLET Submission: ${candidateData.fullName}`,
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -39,7 +39,7 @@ const sendSubmissionEmail = async (candidateData) => {
         <body>
           <div class="container">
             <div class="header">
-              <h2>S-CLAT Exam Submission</h2>
+              <h2>SLET Exam Submission</h2>
             </div>
             <div class="content">
               <div class="info-row">
@@ -52,7 +52,10 @@ const sendSubmissionEmail = async (candidateData) => {
                 <span class="label">Phone:</span> ${candidateData.phone}
               </div>
               <div class="info-row">
-                <span class="label">Qualification:</span> ${candidateData.qualification}
+                <span class="label">Course Applied:</span> ${candidateData.qualification}
+              </div>
+              <div class="info-row">
+                <span class="label">State:</span> ${candidateData.state}
               </div>
               <div class="info-row">
                 <span class="label">City:</span> ${candidateData.city}
@@ -68,16 +71,16 @@ const sendSubmissionEmail = async (candidateData) => {
         </body>
         </html>
       `
-        };
+    };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent successfully:', info.messageId);
-        return { success: true, messageId: info.messageId };
-    } catch (error) {
-        console.error('❌ Email sending failed:', error.message);
-        // Don't throw error - email failure shouldn't block submission
-        return { success: false, error: error.message };
-    }
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ Email sending failed:', error.message);
+    // Don't throw error - email failure shouldn't block submission
+    return { success: false, error: error.message };
+  }
 };
 
 module.exports = { sendSubmissionEmail };

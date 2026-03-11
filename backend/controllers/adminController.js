@@ -1,4 +1,11 @@
 const Admin = require('../models/Admin');
+const fs = require('fs');
+const path = require('path');
+const logFile = 'd:\\LAW Clg project\\website\\backend\\debug.log';
+
+const log = (msg) => {
+    fs.appendFileSync(logFile, `${new Date().toISOString()} - ${msg}\n`);
+};
 const Student = require('../models/Student');
 const ExamSession = require('../models/ExamSession');
 const Response = require('../models/Response');
@@ -78,7 +85,7 @@ const getCandidates = async (req, res) => {
 
         // Get all sessions with student details
         let sessions = await ExamSession.find(query)
-            .populate('studentId', 'fullName email phone qualification city')
+            .populate('studentId', 'fullName email phone qualification state city')
             .sort({ createdAt: -1 })
             .lean();
 
@@ -104,6 +111,7 @@ const getCandidates = async (req, res) => {
             email: session.studentId.email,
             phone: session.studentId.phone,
             qualification: session.studentId.qualification,
+            state: session.studentId.state,
             city: session.studentId.city,
             score: session.score,
             status: session.status,
@@ -173,6 +181,7 @@ const getCandidateDetails = async (req, res) => {
                     email: session.studentId.email,
                     phone: session.studentId.phone,
                     qualification: session.studentId.qualification,
+                    state: session.studentId.state,
                     city: session.studentId.city
                 },
                 session: {
@@ -202,10 +211,16 @@ const getCandidateDetails = async (req, res) => {
 const exportCandidates = async (req, res) => {
     try {
         // Get all submitted sessions
-        const sessions = await ExamSession.find({ status: 'SUBMITTED' })
+        log('DEBUG: Exporting sessions with status "submitted"');
+        const sessions = await ExamSession.find({ status: 'submitted' })
             .populate('studentId')
             .sort({ submittedAt: -1 })
             .lean();
+
+        log(`DEBUG: Found ${sessions.length} submitted sessions for export`);
+        if (sessions.length > 0) {
+            log(`DEBUG: First session status: ${sessions[0].status}`);
+        }
 
         if (sessions.length === 0) {
             return res.status(404).json({
@@ -216,7 +231,7 @@ const exportCandidates = async (req, res) => {
 
         // Create workbook
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('S-CLAT Results');
+        const worksheet = workbook.addWorksheet('SLET Results');
 
         // Define columns
         worksheet.columns = [
@@ -224,7 +239,8 @@ const exportCandidates = async (req, res) => {
             { header: 'Full Name', key: 'fullName', width: 25 },
             { header: 'Email', key: 'email', width: 30 },
             { header: 'Phone', key: 'phone', width: 15 },
-            { header: 'Qualification', key: 'qualification', width: 20 },
+            { header: 'Course Applied', key: 'qualification', width: 20 },
+            { header: 'State', key: 'state', width: 20 },
             { header: 'City', key: 'city', width: 20 },
             { header: 'Score', key: 'score', width: 10 },
             { header: 'Submission Time', key: 'submittedAt', width: 25 }
@@ -247,6 +263,7 @@ const exportCandidates = async (req, res) => {
                 email: session.studentId.email,
                 phone: session.studentId.phone,
                 qualification: session.studentId.qualification,
+                state: session.studentId.state,
                 city: session.studentId.city,
                 score: session.score,
                 submittedAt: new Date(session.submittedAt).toLocaleString('en-IN', {
@@ -284,11 +301,15 @@ const exportCandidates = async (req, res) => {
 const getDashboardStats = async (req, res) => {
     try {
         const totalRegistrations = await Student.countDocuments();
-        const totalSubmissions = await ExamSession.countDocuments({ status: 'SUBMITTED' });
-        const inProgress = await ExamSession.countDocuments({ status: 'IN_PROGRESS' });
+        const totalSubmissions = await ExamSession.countDocuments({ status: 'submitted' });
+        const inProgress = await ExamSession.countDocuments({ status: 'in_progress' });
+
+        log(`DEBUG Stats: ${JSON.stringify({ totalRegistrations, totalSubmissions, inProgress })}`);
+        const allSessions = await ExamSession.find().select('status').limit(5).lean();
+        log(`DEBUG All Statuses (sample): ${JSON.stringify(allSessions.map(s => s.status))}`);
 
         // Get average score
-        const submittedSessions = await ExamSession.find({ status: 'SUBMITTED' }).select('score').lean();
+        const submittedSessions = await ExamSession.find({ status: 'submitted' }).select('score').lean();
         const averageScore = submittedSessions.length > 0
             ? (submittedSessions.reduce((sum, s) => sum + s.score, 0) / submittedSessions.length).toFixed(2)
             : 0;
