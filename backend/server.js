@@ -19,41 +19,58 @@ const app = express();
 connectDB();
 
 // ============================================
-// SECURITY MIDDLEWARE
+// CORS - Must be BEFORE other middleware
 // ============================================
 
-// Helmet - Set security headers
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https:"],
-        },
-    },
-    crossOriginEmbedderPolicy: false,
-}));
+const allowedOrigins = [
+    'https://law-college-project.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:3000'
+];
 
-// CORS - Strict whitelist
-const allowedOrigins = process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-    : ['http://localhost:3000', 'http://localhost:5173'];
+// Add any extra origins from env (comma-separated)
+if (process.env.FRONTEND_URL) {
+    process.env.FRONTEND_URL.split(',').forEach(url => {
+        const trimmed = url.trim();
+        if (trimmed && !allowedOrigins.includes(trimmed)) {
+            allowedOrigins.push(trimmed);
+        }
+    });
+}
 
-app.use(cors({
+const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, Postman, etc.)
+        // Allow requests with no origin (mobile apps, Postman, server-to-server)
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            console.warn(`[CORS] Blocked request from origin: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+};
+
+// Apply CORS
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly for all routes
+app.options('*', cors(corsOptions));
+
+// ============================================
+// SECURITY MIDDLEWARE
+// ============================================
+
+// Helmet - Set security headers (AFTER cors)
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP since frontend is on different domain
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
 // Rate limiting
