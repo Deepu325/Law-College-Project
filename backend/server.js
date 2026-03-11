@@ -53,64 +53,39 @@ const corsOptions = {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+    optionsSuccessStatus: 200
 };
 
-// Apply CORS
+// Apply CORS BEFORE anything else
 app.use(cors(corsOptions));
 
-// Handle preflight requests explicitly for all routes
+// Explicitly handle OPTIONS preflight for ALL routes
 app.options('*', cors(corsOptions));
-
-// ============================================
-// SECURITY MIDDLEWARE
-// ============================================
 
 // Helmet - Set security headers (AFTER cors)
 app.use(helmet({
-    contentSecurityPolicy: false, // Disable CSP since frontend is on different domain
+    contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-    message: {
-        success: false,
-        message: 'Too many requests from this IP, please try again later.'
-    },
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, 
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000, // Increased for stability
     standardHeaders: true,
     legacyHeaders: false,
 });
 
-const registrationLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 1000, // High limit for development
-    message: {
-        success: false,
-        message: 'Too many registration attempts. Please try again later.'
-    }
-});
-
 app.use('/api/', limiter);
-app.use('/api/register', registrationLimiter);
 
 // MongoDB injection prevention
 app.use(mongoSanitize({
     replaceWith: '_',
-    onSanitize: ({ req, key }) => {
-        console.warn(`Sanitized request from ${req.ip}: ${key}`);
-    },
 }));
 
-// ============================================
-// BODY PARSING & LOGGING
-// ============================================
-
 // Body parser
-app.use(express.json({ limit: '10kb' })); // Limit body size
+app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Logging (only in development)
@@ -134,6 +109,18 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Root-level routes for frontend compatibility
+app.get('/config', (req, res) => {
+    res.json({
+        success: true,
+        duration: parseInt(process.env.EXAM_DURATION_MINUTES) || 60,
+        startTime: process.env.EXAM_START_TIME,
+        stopTime: process.env.EXAM_STOP_TIME
+    });
+});
+
+// Map root level /register to the exam router
+app.use('/register', examRoutes);
 
 // API routes
 app.use('/api/admin', adminRoutes);
