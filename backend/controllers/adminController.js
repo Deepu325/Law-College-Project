@@ -12,6 +12,7 @@ const Response = require('../models/Response');
 const Question = require('../models/Question');
 const jwt = require('jsonwebtoken');
 const ExcelJS = require('exceljs');
+const { sendToGoogleSheets } = require('../utils/googleSheets');
 
 // @desc    Admin login
 // @route   POST /api/admin/login
@@ -74,6 +75,56 @@ const adminLogin = async (req, res) => {
 // @access  Private (Admin only)
 const getCandidates = async (req, res) => {
     try {
+        // Auto-submit all expired in_progress/not_started sessions
+        const now = new Date();
+        const expiredSessions = await ExamSession.find({
+            status: { $in: ['in_progress', 'not_started'] },
+            endTime: { $lt: now }
+        });
+
+        for (const session of expiredSessions) {
+            try {
+                // Calculate score for this session
+                const responses = await Response.find({ sessionId: session._id }).lean();
+                const questions = await Question.find({
+                    _id: { $in: responses.map(r => r.questionId) }
+                }).lean();
+
+                let score = 0;
+                responses.forEach(resp => {
+                    const question = questions.find(q => q._id.toString() === resp.questionId.toString());
+                    if (question && resp.selectedOption &&
+                        resp.selectedOption.toUpperCase() === question.correctOption.toUpperCase()) {
+                        score += (question.marks || 1);
+                    }
+                });
+
+                session.status = 'submitted';
+                session.score = score;
+                session.submittedAt = session.endTime; // Use end time as submission time
+                await session.save();
+                console.log(`Auto-submitted expired session ${session._id} with score ${score}`);
+
+                // Sync auto-submitted session to Google Sheets
+                const student = await Student.findById(session.studentId).lean();
+                if (student) {
+                    sendToGoogleSheets({
+                        name: student.fullName,
+                        email: student.email,
+                        mobile: student.phone,
+                        city: student.city,
+                        course: student.qualification,
+                        score: score,
+                        startTime: session.startTime,
+                        endTime: session.endTime,
+                        submissionTime: session.endTime
+                    }).catch(err => console.error('[Google Sheets] Auto-submit sync error:', err));
+                }
+            } catch (err) {
+                console.error(`Failed to auto-submit session ${session._id}:`, err);
+            }
+        }
+
         const { search, status } = req.query;
 
         // Build query
@@ -115,6 +166,7 @@ const getCandidates = async (req, res) => {
             city: session.studentId.city,
             score: session.score,
             status: session.status,
+            exam_started_at: session.exam_started_at,
             submittedAt: session.submittedAt,
             startTime: session.startTime,
             endTime: session.endTime
@@ -243,6 +295,7 @@ const exportCandidates = async (req, res) => {
             { header: 'State', key: 'state', width: 20 },
             { header: 'City', key: 'city', width: 20 },
             { header: 'Score', key: 'score', width: 10 },
+            { header: 'Start Time', key: 'exam_started_at', width: 25 },
             { header: 'Submission Time', key: 'submittedAt', width: 25 }
         ];
 
@@ -266,6 +319,9 @@ const exportCandidates = async (req, res) => {
                 state: session.studentId.state,
                 city: session.studentId.city,
                 score: session.score,
+                exam_started_at: session.exam_started_at ? new Date(session.exam_started_at).toLocaleString('en-IN', {
+                    timeZone: 'Asia/Kolkata'
+                }) : '-',
                 submittedAt: new Date(session.submittedAt).toLocaleString('en-IN', {
                     timeZone: 'Asia/Kolkata'
                 })
@@ -300,6 +356,39 @@ const exportCandidates = async (req, res) => {
 // @access  Private (Admin only)
 const getDashboardStats = async (req, res) => {
     try {
+        // Auto-submit all expired in_progress/not_started sessions
+        const now = new Date();
+        const expiredSessions = await ExamSession.find({
+            status: { $in: ['in_progress', 'not_started'] },
+            endTime: { $lt: now }
+        });
+
+        for (const session of expiredSessions) {
+            try {
+                const responses = await Response.find({ sessionId: session._id }).lean();
+                const questions = await Question.find({
+                    _id: { $in: responses.map(r => r.questionId) }
+                }).lean();
+
+                let score = 0;
+                responses.forEach(resp => {
+                    const question = questions.find(q => q._id.toString() === resp.questionId.toString());
+                    if (question && resp.selectedOption &&
+                        resp.selectedOption.toUpperCase() === question.correctOption.toUpperCase()) {
+                        score += (question.marks || 1);
+                    }
+                });
+
+                session.status = 'submitted';
+                session.score = score;
+                session.submittedAt = session.endTime;
+                await session.save();
+                console.log(`[Stats] Auto-submitted expired session ${session._id} with score ${score}`);
+            } catch (err) {
+                console.error(`[Stats] Failed to auto-submit session ${session._id}:`, err);
+            }
+        }
+
         const totalRegistrations = await Student.countDocuments();
         const totalSubmissions = await ExamSession.countDocuments({ status: 'submitted' });
         const inProgress = await ExamSession.countDocuments({ status: 'in_progress' });

@@ -24,7 +24,7 @@ const validateTimer = async (req, res, next) => {
         }
 
         // Check if already submitted
-        if (session.status === 'SUBMITTED') {
+        if (session.status === 'submitted') {
             return res.status(403).json({
                 success: false,
                 message: 'Exam already submitted. No further actions allowed.',
@@ -34,7 +34,9 @@ const validateTimer = async (req, res, next) => {
 
         // Server-authoritative time check
         const now = new Date();
-        const timeExpired = now > session.endTime;
+        const globalStop = process.env.EXAM_STOP_TIME ? new Date(process.env.EXAM_STOP_TIME) : null;
+        
+        const timeExpired = now > session.endTime || (globalStop && now > globalStop);
 
         if (timeExpired) {
             // Time has expired - force submit

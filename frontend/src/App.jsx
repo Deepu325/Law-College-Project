@@ -1,6 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ExamProvider } from './context/ExamContext';
+import { useEffect } from 'react';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -10,15 +11,25 @@ import ThankYouPage from './pages/ThankYouPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 
+// ScrollToTop Component
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('adminToken');
+  const token = sessionStorage.getItem('adminToken');
   return token ? children : <Navigate to="/admin/login" replace />;
 };
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <ExamProvider>
         <Routes>
           {/* Public Routes */}

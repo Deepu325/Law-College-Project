@@ -18,6 +18,7 @@
 @layer base {
   body {
     @apply font-body text-text-body bg-white;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1,
@@ -32,70 +33,81 @@
 
 @layer components {
 
-  /* Button Styles */
+  /* Button Styles - Touch friendly with min 44px height */
   .btn-primary {
-    @apply bg-brand-gold text-text-dark font-semibold px-8 py-3 rounded-md hover:bg-yellow-500 transition-colors duration-200 shadow-sm;
+    @apply bg-brand-gold text-text-dark font-semibold px-6 py-3 rounded-md hover:bg-yellow-500 transition-colors duration-200 shadow-sm;
+    min-height: 44px;
+    touch-action: manipulation;
   }
 
   .btn-secondary {
-    @apply bg-brand-purple text-white font-semibold px-8 py-3 rounded-md hover:bg-purple-900 transition-colors duration-200;
+    @apply bg-brand-purple text-white font-semibold px-6 py-3 rounded-md hover:bg-purple-900 transition-colors duration-200;
+    min-height: 44px;
+    touch-action: manipulation;
   }
 
   .btn-outline {
-    @apply border-2 border-brand-purple text-brand-purple font-semibold px-6 py-2 rounded-md hover:bg-brand-purple hover:text-white transition-all duration-200;
+    @apply border-2 border-brand-purple text-brand-purple font-semibold px-4 py-2 rounded-md hover:bg-brand-purple hover:text-white transition-all duration-200;
+    min-height: 44px;
+    touch-action: manipulation;
   }
 
-  /* Card Styles */
+  /* Card Styles - Responsive padding */
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-white rounded-lg shadow-md p-4 md:p-6;
   }
 
   .card-exam {
-    @apply bg-white rounded-lg shadow-sm p-8 border border-gray-100;
+    @apply bg-white rounded-lg shadow-sm p-4 sm:p-6 md:p-8 border border-gray-100;
   }
 
-  /* Input Styles */
+  /* Input Styles - Touch friendly */
   .input-field {
     @apply w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all;
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on input focus */
   }
 
   .input-error {
     @apply border-error-red focus:ring-error-red;
   }
 
-  /* Timer Styles */
+  /* Timer Styles - Responsive text */
   .timer-normal {
-    @apply text-brand-purple font-bold text-xl;
+    @apply text-brand-purple font-bold text-base md:text-xl;
   }
 
   .timer-warning {
-    @apply text-yellow-600 font-bold text-xl animate-pulse;
+    @apply text-yellow-600 font-bold text-base md:text-xl animate-pulse;
   }
 
   .timer-critical {
-    @apply text-error-red font-bold text-2xl animate-pulse;
+    @apply text-error-red font-bold text-lg md:text-2xl animate-pulse;
   }
 
-  /* Question Option Styles */
+  /* Question Option Styles - Touch friendly */
   .option-radio {
-    @apply flex items-center p-4 border-2 border-gray-200 rounded-md cursor-pointer hover:border-brand-purple hover:bg-purple-50 transition-all;
+    @apply flex items-center p-3 md:p-4 border-2 border-gray-200 rounded-md cursor-pointer hover:border-brand-purple hover:bg-purple-50 transition-all;
+    min-height: 44px;
   }
 
   .option-selected {
     @apply border-brand-purple bg-purple-50;
   }
 
-  /* Admin Table */
+  /* Admin Table - Responsive */
   .admin-table {
     @apply w-full border-collapse bg-white shadow-sm rounded-lg overflow-hidden;
+    min-width: 800px;
   }
 
   .admin-table th {
-    @apply bg-brand-purple text-white px-6 py-4 text-left font-semibold;
+    @apply bg-brand-purple text-white px-3 md:px-6 py-3 md:py-4 text-left font-semibold text-xs md:text-sm;
+    white-space: nowrap;
   }
 
   .admin-table td {
-    @apply px-6 py-4 border-b border-gray-200;
+    @apply px-3 md:px-6 py-3 md:py-4 border-b border-gray-200 text-xs md:text-sm;
   }
 
   .admin-table tr:hover {
@@ -111,15 +123,16 @@
   .card-shadow {
     box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.06);
   }
-}
 
-/* Disable right-click (optional - can be enabled in production) */
-/* body {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-} */
+  /* Safe area utilities for mobile notches */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
 
 /* Loading spinner */
 .spinner {
@@ -146,9 +159,73 @@
   @apply text-sm text-success-green flex items-center gap-2;
 }
 
-/* Smooth transitions */
+/* Smooth transitions - only for color properties to avoid jank */
 * {
   transition-property: color, background-color, border-color;
   transition-duration: 150ms;
   transition-timing-function: ease-in-out;
+}
+
+/* Mobile-specific scrollbar styling */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(75, 46, 131, 0.3);
+    border-radius: 4px;
+  }
+}
+
+/* Hamburger menu animation */
+.hamburger-line {
+  transition: all 0.3s ease-in-out;
+}
+
+.hamburger-open .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-open .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-open .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Mobile nav overlay */
+.mobile-nav-overlay {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease-in-out;
+}
+
+.mobile-nav-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-nav-panel {
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-nav-panel.open {
+  transform: translateX(0);
+}
+
+/* Question nav mobile drawer */
+.question-nav-drawer {
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.question-nav-drawer.open {
+  transform: translateY(0);
 }

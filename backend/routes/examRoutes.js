@@ -6,7 +6,9 @@ const {
     getQuestions,
     saveAnswer,
     submitExam,
-    getSessionStatus
+    getSessionStatus,
+    getUserResponses,
+    getExamConfig
 } = require('../controllers/examController');
 const checkDuplicateAttempt = require('../middleware/checkDuplicateAttempt');
 const validateTimer = require('../middleware/validateTimer');
@@ -45,5 +47,7 @@ router.post(
 );
 
 router.get('/session/:sessionId', getSessionStatus);
+router.get('/responses/:sessionId', getUserResponses);
+router.get('/config', getExamConfig);
 
 module.exports = router;

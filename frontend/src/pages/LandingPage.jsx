@@ -1,141 +1,225 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Clock, FileText, AlertCircle, Calendar } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useExam } from '../context/ExamContext';
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    const { examConfig } = useExam();
+
+    const now = new Date();
+    const startTime = examConfig ? new Date(examConfig.startTime) : null;
+    const stopTime = examConfig ? new Date(examConfig.stopTime) : null;
+
+    const isBefore = startTime && now < startTime;
+    const isAfter = stopTime && now > stopTime;
+    const isOpen = startTime && stopTime && now >= startTime && now <= stopTime;
+
+    const formatDate = (date) => {
+        if (!date) return '';
+        return date.toLocaleString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    };
 
     return (
-        <div className="min-h-screen bg-bg-exam flex flex-col">
+        <div className="min-h-screen bg-bg-exam flex flex-col font-body">
             <Header showLogo={true} title="SLET" subtitle="Soundarya Law Entrance Test" />
 
             {/* Main Content */}
-            <main className="container mx-auto px-4 py-12 max-w-4xl flex-1">
-                {/* Exam Overview Card */}
-                <div className="card-exam mb-8">
-                    <h2 className="text-3xl font-heading font-bold text-brand-purple mb-6 text-center">
-                        Examination Overview
-                    </h2>
+            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 max-w-5xl flex-1 flex flex-col items-center">
+                
+                {/* Hero / Exam Overview Card */}
+                <div className="card-exam w-full mb-8 transform transition-all duration-300 hover:shadow-lg border-t-4 border-t-brand-purple">
+                    <div className="text-center mb-10">
+                        <span className="inline-block py-1.5 px-4 rounded-full bg-purple-100 text-brand-purple text-xs font-bold uppercase tracking-widest mb-4">
+                            Admissions 2026
+                        </span>
+                        <h2 className="text-2xl sm:text-3xl md:text-5xl font-heading font-extrabold text-brand-purple mb-4 leading-tight">
+                            Examination Overview
+                        </h2>
+                        <div className="w-24 h-1.5 bg-brand-gold mx-auto rounded-full"></div>
+                    </div>
 
-                    <div className="grid md:grid-cols-3 gap-6 mb-8">
-                        <div className="text-center p-4 bg-purple-50 rounded-lg">
-                            <Clock className="w-12 h-12 text-brand-purple mx-auto mb-3" />
-                            <h3 className="font-semibold text-lg mb-2">Duration</h3>
-                            <p className="text-text-body">60 Minutes</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+                        {/* Duration */}
+                        <div className="group bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center transform hover:-translate-y-1">
+                            <div className="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center mb-4 group-hover:bg-brand-purple transition-colors duration-300">
+                                <Clock className="w-8 h-8 text-brand-purple group-hover:text-white transition-colors duration-300" />
+                            </div>
+                            <h3 className="font-bold text-lg text-text-dark mb-2 font-heading">Duration</h3>
+                            <p className="text-text-body font-medium bg-gray-50 px-4 py-1.5 rounded-full text-sm">60 Minutes</p>
                         </div>
 
-                        <div className="text-center p-4 bg-purple-50 rounded-lg">
-                            <FileText className="w-12 h-12 text-brand-purple mx-auto mb-3" />
-                            <h3 className="font-semibold text-lg mb-2">Questions</h3>
-                            <p className="text-text-body">30 MCQs</p>
+                        {/* Window */}
+                        <div className="group bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center transform hover:-translate-y-1 relative sm:col-span-2 md:col-span-1">
+                            <div className="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center mb-4 group-hover:bg-brand-purple transition-colors duration-300">
+                                <Calendar className="w-8 h-8 text-brand-purple group-hover:text-white transition-colors duration-300" />
+                            </div>
+                            <h3 className="font-bold text-lg text-text-dark mb-2 font-heading">Window</h3>
+                            <div className="space-y-1 w-full bg-gray-50 p-2 md:p-3 rounded-lg text-xs font-mono font-medium text-text-body">
+                                <div className="flex flex-wrap justify-center gap-1">
+                                    <span className="text-brand-purple font-bold">Start:</span> {formatDate(startTime)}
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-1">
+                                    <span className="text-error-red font-bold">End:</span> {formatDate(stopTime)}
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="text-center p-4 bg-purple-50 rounded-lg">
-                            <CheckCircle className="w-12 h-12 text-brand-purple mx-auto mb-3" />
-                            <h3 className="font-semibold text-lg mb-2">Sections</h3>
-                            <p className="text-text-body">GK, Logical, Quant & Legal</p>
+                        {/* Questions */}
+                        <div className="group bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center transform hover:-translate-y-1 sm:col-span-2 lg:col-span-1">
+                            <div className="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center mb-4 group-hover:bg-brand-purple transition-colors duration-300">
+                                <FileText className="w-8 h-8 text-brand-purple group-hover:text-white transition-colors duration-300" />
+                            </div>
+                            <h3 className="font-bold text-lg text-text-dark mb-2 font-heading">Questions</h3>
+                            <p className="text-text-body font-medium bg-gray-50 px-4 py-1.5 rounded-full text-sm">30 MCQs</p>
                         </div>
                     </div>
 
-                    {/* Exam Structure */}
-                    <div className="mb-8">
-                        <h3 className="text-xl font-semibold mb-4 text-brand-purple">Exam Structure</h3>
-                        <ul className="space-y-3">
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">•</span>
-                                <span><strong>General Knowledge & Current Affairs:</strong> 10 Questions</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">•</span>
-                                <span><strong>Logical Reasoning:</strong> 8 Questions</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">•</span>
-                                <span><strong>Quantitative Aptitude:</strong> 2 Questions</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">•</span>
-                                <span><strong>Legal Reading Comprehension:</strong> 10 Questions</span>
-                            </li>
-                        </ul>
+                    {/* Content Grid */}
+                    <div className="grid md:grid-cols-2 gap-8 md:gap-12 mb-10">
+                        {/* Exam Structure */}
+                        <div className="bg-gray-50 p-6 sm:p-8 rounded-2xl border border-gray-100">
+                            <h3 className="text-xl sm:text-2xl font-bold mb-6 text-brand-purple font-heading flex items-center gap-3">
+                                <span className="w-8 h-8 rounded-full bg-brand-purple text-white flex items-center justify-center text-sm font-bold">1</span>
+                                Exam Structure
+                            </h3>
+                            <ul className="space-y-4">
+                                <li className="flex items-start bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-50 gap-4 transition-all hover:bg-purple-50">
+                                    <div className="w-8 h-8 rounded-full bg-brand-gold/20 flex items-center justify-center flex-shrink-0 text-brand-gold font-bold">10</div>
+                                    <div>
+                                        <p className="font-bold text-text-dark text-sm sm:text-base">General Knowledge & CA</p>
+                                    </div>
+                                </li>
+                                <li className="flex items-start bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-50 gap-4 transition-all hover:bg-purple-50">
+                                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600 font-bold">8</div>
+                                    <div>
+                                        <p className="font-bold text-text-dark text-sm sm:text-base">Logical Reasoning</p>
+                                    </div>
+                                </li>
+                                <li className="flex items-start bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-50 gap-4 transition-all hover:bg-purple-50">
+                                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 text-green-600 font-bold">2</div>
+                                    <div>
+                                        <p className="font-bold text-text-dark text-sm sm:text-base">Quantitative Aptitude</p>
+                                    </div>
+                                </li>
+                                <li className="flex items-start bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-50 gap-4 transition-all hover:bg-purple-50">
+                                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 text-red-600 font-bold">10</div>
+                                    <div>
+                                        <p className="font-bold text-text-dark text-sm sm:text-base">Legal Reading Comp.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="p-4 sm:p-6 lg:p-8">
+                            <h3 className="text-xl sm:text-2xl font-bold mb-6 text-brand-purple font-heading flex items-center gap-3">
+                                <span className="w-8 h-8 rounded-full bg-brand-purple text-white flex items-center justify-center text-sm font-bold">2</span>
+                                General Guidelines
+                            </h3>
+                            <ul className="space-y-5 text-gray-600 text-sm sm:text-base font-medium">
+                                <li className="flex items-start group">
+                                    <span className="text-brand-gold font-bold mr-3 mt-0.5">•</span>
+                                    <span className="group-hover:text-text-dark transition-colors">You will have <strong className="text-brand-purple">60 minutes</strong> to complete the exam.</span>
+                                </li>
+                                <li className="flex items-start group">
+                                    <span className="text-brand-gold font-bold mr-3 mt-0.5">•</span>
+                                    <span className="group-hover:text-text-dark transition-colors">Your answers are <strong className="text-brand-purple">auto-saved</strong> as you progress.</span>
+                                </li>
+                                <li className="flex items-start group">
+                                    <span className="text-brand-gold font-bold mr-3 mt-0.5">•</span>
+                                    <span className="group-hover:text-text-dark transition-colors">You can navigate between questions easily.</span>
+                                </li>
+                                <li className="flex items-start group">
+                                    <span className="text-brand-gold font-bold mr-3 mt-0.5">•</span>
+                                    <span className="group-hover:text-text-dark transition-colors">The exam will <strong className="text-brand-purple">auto-submit</strong> when time expires.</span>
+                                </li>
+                                <li className="flex items-start group">
+                                    <span className="text-brand-gold font-bold mr-3 mt-0.5">•</span>
+                                    <span className="group-hover:text-text-dark transition-colors">You can resume if browser closes accidentally.</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
-                    {/* Instructions */}
-                    <div className="mb-8">
-                        <h3 className="text-xl font-semibold mb-4 text-brand-purple">Important Instructions</h3>
-                        <ul className="space-y-3 text-text-body">
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">1.</span>
-                                <span>You will have <strong>60 minutes</strong> to complete the exam once you start.</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">2.</span>
-                                <span>Your answers will be <strong>auto-saved</strong> as you progress.</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">3.</span>
-                                <span>You can navigate between questions and change answers before submission.</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">4.</span>
-                                <span>The exam will <strong>auto-submit</strong> when time expires.</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">5.</span>
-                                <span>You can resume the exam if you refresh or close the browser (within time limit).</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-brand-purple mr-3">6.</span>
-                                <span>Results will be visible only to the admin team.</span>
-                            </li>
-                        </ul>
-                    </div>
+                    {/* Alerts Array Grid Layout */}
+                    <div className="grid md:grid-cols-2 gap-6 mb-12">
+                        {/* Important Notice */}
+                        <div className="bg-yellow-50 border-l-4 border-brand-gold p-6 rounded-xl rounded-l-none shadow-sm h-full transition-transform hover:-translate-y-1">
+                            <div className="flex flex-col sm:flex-row items-start gap-4">
+                                <div className="bg-brand-gold/20 p-2 rounded-full flex-shrink-0">
+                                    <AlertCircle className="w-6 h-6 text-yellow-700" />
+                                </div>
+                                <div>
+                                    <h4 className="font-extrabold text-sm sm:text-base mb-3 text-yellow-800 uppercase tracking-widest">Notice</h4>
+                                    <ul className="space-y-2 text-yellow-900/80 text-sm font-medium">
+                                        <li className="flex items-start gap-2"><span className="text-brand-gold">•</span> You can attempt only once.</li>
+                                        <li className="flex items-start gap-2"><span className="text-brand-gold">•</span> Ensure stable internet.</li>
+                                        <li className="flex items-start gap-2"><span className="text-brand-gold">•</span> Do not refresh unnecessarily.</li>
+                                        <li className="flex items-start gap-2"><span className="text-brand-gold">•</span> Valid email & phone required.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
 
-                    {/* Important Notice */}
-                    <div className="bg-yellow-50 border-l-4 border-brand-gold p-6 mb-8">
-                        <div className="flex items-start">
-                            <AlertCircle className="w-6 h-6 text-brand-gold mr-3 flex-shrink-0 mt-1" />
-                            <div>
-                                <h4 className="font-bold text-lg mb-2 text-text-dark">Important Notice</h4>
-                                <ul className="space-y-2 text-text-body">
-                                    <li>• You can attempt this exam <strong>only once</strong>.</li>
-                                    <li>• Ensure stable internet connection before starting.</li>
-                                    <li>• Do not refresh or close the browser unnecessarily.</li>
-                                    <li>• Your email and phone number must be unique.</li>
-                                </ul>
+                        {/* Malpractice Warning */}
+                        <div className="bg-red-50 border-l-4 border-error-red p-6 rounded-xl rounded-l-none shadow-sm h-full transition-transform hover:-translate-y-1">
+                            <div className="flex flex-col sm:flex-row items-start gap-4">
+                                <div className="bg-red-100 p-2 rounded-full flex-shrink-0">
+                                    <AlertCircle className="w-6 h-6 text-error-red" />
+                                </div>
+                                <div>
+                                    <h4 className="font-extrabold text-sm sm:text-base mb-3 text-red-800 uppercase tracking-widest">Warning</h4>
+                                    <p className="text-red-900/80 text-sm font-medium leading-relaxed">
+                                        Any form of malpractice, cheating, or impersonation during the examination will be recorded and will result in strict <strong className="text-error-red">cancellation</strong> of candidature.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Malpractice Warning */}
-                    <div className="mb-10 p-6 bg-red-50 border border-red-200 rounded-xl flex items-start gap-4 shadow-sm">
-                        <AlertCircle className="w-6 h-6 text-error-red flex-shrink-0 mt-0.5" />
-                        <p className="text-error-red font-bold text-base leading-relaxed">
-                            Any form of malpractice, cheating, impersonation, or use of unfair means during the examination will result in immediate cancellation of the candidate’s candidature.
-                        </p>
-                    </div>
-
                     {/* Start Button & Admission Disclaimer */}
-                    <div className="text-center flex flex-col items-center gap-6">
-                        <button
-                            onClick={() => navigate('/register')}
-                            className="btn-primary text-lg px-12 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-                        >
-                            Start Test
-                        </button>
+                    <div className="text-center flex flex-col items-center gap-6 md:gap-8 bg-gray-50/50 p-8 rounded-3xl border border-gray-100">
+                        {isBefore ? (
+                            <div className="p-6 bg-blue-50 text-blue-800 rounded-xl border border-blue-200 max-w-md w-full shadow-inner text-center">
+                                <Clock className="w-10 h-10 text-blue-500 mx-auto mb-3 animate-bounce" />
+                                <p className="font-bold text-lg mb-1">The exam has not started yet.</p>
+                                <p className="text-sm font-mono bg-white inline-block px-3 py-1 rounded">Resume at: {formatDate(startTime)}</p>
+                            </div>
+                        ) : isAfter ? (
+                            <div className="p-6 bg-red-50 text-error-red rounded-xl border border-red-200 max-w-md w-full shadow-inner text-center">
+                                <AlertCircle className="w-10 h-10 text-error-red mx-auto mb-3" />
+                                <p className="font-bold text-lg">The exam session has ended.</p>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => navigate('/register')}
+                                className="group relative inline-flex items-center justify-center min-h-[56px] px-8 sm:px-16 py-4 sm:py-5 overflow-hidden font-bold text-white bg-brand-purple rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 text-lg sm:text-xl font-heading tracking-wide"
+                            >
+                                <span className="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
+                                <span className="relative z-10 flex items-center gap-3">
+                                    Begin Registration
+                                    <span className="transition-transform group-hover:translate-x-1">→</span>
+                                </span>
+                            </button>
+                        )}
 
-                        <p className="text-sm text-gray-500 max-w-lg leading-relaxed font-medium">
+                        <p className="text-xs sm:text-sm text-gray-500 max-w-2xl leading-relaxed font-medium bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                             Qualification in the entrance test does not automatically guarantee admission. Admission is subject to fulfillment of eligibility criteria, availability of seats, and verification of documents.
+                            <br/><br/>
+                            <span className="text-brand-purple font-bold block mt-2">By proceeding, you agree to these terms.</span>
                         </p>
                     </div>
                 </div>
-
-                {/* Footer Note */}
-                <p className="text-center text-sm text-gray-500 mt-8">
-                    By proceeding, you agree to the terms and conditions of this examination.
-                </p>
             </main>
 
             <Footer />

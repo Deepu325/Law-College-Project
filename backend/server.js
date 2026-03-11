@@ -117,35 +117,6 @@ app.get('/health', (req, res) => {
     });
 });
 
-// TEMPORARY DEBUG ROUTE - remove after fixing
-app.get('/debug/sessions', async (req, res) => {
-    try {
-        const mongoose = require('mongoose');
-        const ExamSession = require('./models/ExamSession');
-        const db = mongoose.connection;
-
-        // Raw MongoDB query (bypasses Mongoose schema)
-        const rawSessions = await db.db.collection('examsessions').find({}).project({ status: 1 }).toArray();
-
-        // Mongoose query
-        const mongooseSessions = await ExamSession.find().select('status').lean();
-
-        // Mongoose filtered query
-        const submittedSessions = await ExamSession.countDocuments({ status: 'submitted' });
-
-        res.json({
-            dbName: db.name,
-            rawCount: rawSessions.length,
-            rawStatuses: rawSessions.map(s => s.status),
-            mongooseCount: mongooseSessions.length,
-            mongooseStatuses: mongooseSessions.map(s => s.status),
-            submittedCount: submittedSessions,
-            collectionName: ExamSession.collection.name
-        });
-    } catch (err) {
-        res.json({ error: err.message, stack: err.stack });
-    }
-});
 
 // API routes
 app.use('/api/admin', adminRoutes);

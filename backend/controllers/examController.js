@@ -3,6 +3,7 @@ const ExamSession = require('../models/ExamSession');
 const Question = require('../models/Question');
 const Response = require('../models/Response');
 const { sendSubmissionEmail } = require('../utils/email');
+const { sendToGoogleSheets } = require('../utils/googleSheets');
 const mongoose = require('mongoose');
 
 // @desc    Register student and create exam session
@@ -17,6 +18,28 @@ const registerStudent = async (req, res) => {
         const normalizedEmail = email.toLowerCase().trim();
         const normalizedPhone = phone.trim();
 
+        // Check Global Exam Window Bounds
+        const now = new Date();
+        const globalStart = new Date(process.env.EXAM_START_TIME);
+        const globalStop = new Date(process.env.EXAM_STOP_TIME);
+
+        if (now < globalStart) {
+            return res.status(403).json({
+                success: false,
+                message: `The exam has not started yet. Please come back at ${globalStart.toLocaleString()}`,
+                notStarted: true,
+                startTime: globalStart
+            });
+        }
+
+        if (now > globalStop) {
+            return res.status(403).json({
+                success: false,
+                message: 'The exam has ended.',
+                isEnded: true
+            });
+        }
+
         // Case 2 & 3: Check for existing student
         let student = await Student.findOne({
             $or: [{ email: normalizedEmail }, { phone: normalizedPhone }]
@@ -27,7 +50,7 @@ const registerStudent = async (req, res) => {
 
             if (session) {
                 // Case 3 — exam_status = "completed"
-                if (session.status === 'completed') {
+                if (session.status === 'submitted') {
                     return res.status(409).json({
                         success: false,
                         message: 'You have already attempted this exam using this email or mobile number. Multiple attempts are not allowed.',
@@ -66,10 +89,17 @@ const registerStudent = async (req, res) => {
             consent
         });
 
-        // Calculate exam times
+        // Calculate exam times with window restriction (Step 3 Requirement)
         const startTime = new Date();
         const examDurationMinutes = parseInt(process.env.EXAM_DURATION_MINUTES) || 60;
-        const endTime = new Date(startTime.getTime() + examDurationMinutes * 60 * 1000);
+        
+        // Potential end time based on duration
+        let endTime = new Date(startTime.getTime() + examDurationMinutes * 60 * 1000);
+        
+        // Restricted end time based on global stop time
+        if (endTime > globalStop) {
+            endTime = globalStop;
+        }
 
         const examSession = await ExamSession.create({
             studentId: student._id,
@@ -123,11 +153,26 @@ const startExamActivity = async (req, res) => {
         }
 
         if (session.status === 'not_started') {
+            const now = new Date();
+            const globalStop = new Date(process.env.EXAM_STOP_TIME);
+
+            if (now > globalStop) {
+                return res.status(403).json({ success: false, message: 'The exam has already ended.' });
+            }
+
             session.status = 'in_progress';
-            // We can also reset startTime here if we want the 60 mins to start exactly now
-            const examDurationMinutes = parseInt(process.env.EXAM_DURATION_MINUTES) || 60;
-            session.startTime = new Date();
-            session.endTime = new Date(session.startTime.getTime() + examDurationMinutes * 60 * 1000);
+            session.exam_started_at = now;
+            session.startTime = now;
+            
+            // Re-calculate endTime to ensure it doesn't exceed global limits even if started late
+            const durationMs = (parseInt(process.env.EXAM_DURATION_MINUTES) || 60) * 60 * 1000;
+            let calculatedEnd = new Date(now.getTime() + durationMs);
+            
+            if (calculatedEnd > globalStop) {
+                calculatedEnd = globalStop;
+            }
+            
+            session.endTime = calculatedEnd;
             await session.save();
         }
 
@@ -137,7 +182,8 @@ const startExamActivity = async (req, res) => {
             data: {
                 status: session.status,
                 startTime: session.startTime,
-                endTime: session.endTime
+                endTime: session.endTime,
+                exam_started_at: session.exam_started_at
             }
         });
     } catch (error) {
@@ -265,11 +311,22 @@ const submitExam = async (req, res) => {
             });
         }
 
-        // Calculate score
+        // Calculate score with robustness
         const responses = await Response.find({ sessionId }).lean();
-        const correctAnswers = responses.filter(r => r.isCorrect).length;
+        const questions = await Question.find({ 
+            _id: { $in: responses.map(r => r.questionId) } 
+        }).lean();
+
+        let score = 0;
+        responses.forEach(resp => {
+            const question = questions.find(q => q._id.toString() === resp.questionId.toString());
+            if (question && resp.selectedOption && 
+                resp.selectedOption.toUpperCase() === question.correctOption.toUpperCase()) {
+                score += (question.marks || 1);
+            }
+        });
+
         const totalQuestions = await Question.countDocuments();
-        const score = correctAnswers;
 
         // Update session
         session.status = 'submitted';
@@ -288,6 +345,19 @@ const submitExam = async (req, res) => {
             totalMarks: totalQuestions,
             submittedAt: session.submittedAt
         }).catch(err => console.error('Email send error:', err));
+
+        // Sync to Google Sheets (non-blocking)
+        sendToGoogleSheets({
+            name: session.studentId.fullName,
+            email: session.studentId.email,
+            mobile: session.studentId.phone,
+            city: session.studentId.city,
+            course: session.studentId.qualification,
+            score: score,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            submissionTime: session.submittedAt
+        }).catch(err => console.error('[Google Sheets] Sync error on submit:', err));
 
         res.status(200).json({
             success: true,
@@ -336,12 +406,21 @@ const getSessionStatus = async (req, res) => {
         if (session.status !== 'submitted' && new Date() > new Date(session.endTime)) {
             console.log(`Auto-closing session ${sessionId} due to expiration`);
 
-            // Calculate score for existing responses
+            // Mark as submitted with robust scoring
             const responses = await Response.find({ sessionId }).lean();
-            const correctAnswers = responses.filter(r => r.isCorrect).length;
-            const score = correctAnswers;
+            const questions = await Question.find({ 
+                _id: { $in: responses.map(r => r.questionId) } 
+            }).lean();
 
-            // Mark as submitted
+            let score = 0;
+            responses.forEach(resp => {
+                const question = questions.find(q => q._id.toString() === resp.questionId.toString());
+                if (question && resp.selectedOption && 
+                    resp.selectedOption.toUpperCase() === question.correctOption.toUpperCase()) {
+                    score += (question.marks || 1);
+                }
+            });
+
             const updatedSession = await ExamSession.findByIdAndUpdate(sessionId, {
                 status: 'submitted',
                 score: score,
@@ -394,11 +473,63 @@ const getSessionStatus = async (req, res) => {
     }
 };
 
+// @desc    Get user responses for a session (for resumption)
+// @route   GET /api/responses/:sessionId
+// @access  Public
+const getUserResponses = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(sessionId)) {
+            return res.status(400).json({ success: false, message: 'Invalid session ID' });
+        }
+
+        const responses = await Response.find({ sessionId })
+            .select('questionId selectedOption -_id')
+            .lean();
+
+        // Convert to a simple questionId -> selectedOption object
+        const answersMap = {};
+        responses.forEach(r => {
+            answersMap[r.questionId] = r.selectedOption;
+        });
+
+        res.status(200).json({
+            success: true,
+            data: answersMap
+        });
+    } catch (error) {
+        console.error('Get user responses error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch responses' });
+    }
+};
+
+// @desc    Get global exam configuration
+// @route   GET /api/config
+// @access  Public
+const getExamConfig = async (req, res) => {
+    try {
+        res.status(200).json({
+            success: true,
+            data: {
+                startTime: process.env.EXAM_START_TIME,
+                stopTime: process.env.EXAM_STOP_TIME,
+                duration: process.env.EXAM_DURATION_MINUTES,
+                currentTime: new Date()
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch config' });
+    }
+};
+
 module.exports = {
     registerStudent,
     startExamActivity,
     getQuestions,
     saveAnswer,
     submitExam,
-    getSessionStatus
+    getSessionStatus,
+    getUserResponses,
+    getExamConfig
 };

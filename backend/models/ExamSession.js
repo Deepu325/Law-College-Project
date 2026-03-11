@@ -16,6 +16,10 @@ const examSessionSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
+    exam_started_at: {
+        type: Date,
+        default: null
+    },
     status: {
         type: String,
         required: true,

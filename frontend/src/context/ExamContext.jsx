@@ -4,7 +4,9 @@ import {
     saveAnswer as saveAnswerAPI, 
     submitExam as submitExamAPI,
     getSessionStatus,
-    startExam as startExamAPI 
+    startExam as startExamAPI,
+    getUserResponses,
+    getExamConfig
 } from '../api/examApi';
 
 const ExamContext = createContext();
@@ -22,6 +24,7 @@ export const ExamProvider = ({ children }) => {
     const [saving, setSaving] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
     const [error, setError] = useState(null);
+    const [examConfig, setExamConfig] = useState(null);
 
     const isLocked = isSubmitted || remainingTime <= 0;
 
@@ -100,10 +103,20 @@ export const ExamProvider = ({ children }) => {
                 setHasStarted(false);
             }
 
-            // Fetch questions
-            const response = await getQuestions();
-            if (response.success) {
-                setQuestions(response.data.questions);
+            // Fetch questions & answers (answers are optional, don't fail if fetch fails)
+            const [qResponse, aResponse] = await Promise.all([
+                getQuestions(),
+                getUserResponses(data.sessionId).catch(err => {
+                    console.warn('Answer restoration skipped or failed:', err);
+                    return { success: true, data: {} };
+                })
+            ]);
+
+            if (qResponse.success) {
+                setQuestions(qResponse.data.questions);
+            }
+            if (aResponse.success) {
+                setAnswers(aResponse.data);
             }
 
             // Calculate remaining time
@@ -168,8 +181,18 @@ export const ExamProvider = ({ children }) => {
         }
     }, [sessionData, isSubmitted]);
 
-    // Load session from localStorage on mount
+    // Load session and config on mount
     useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const res = await getExamConfig();
+                if (res.success) setExamConfig(res.data);
+            } catch (err) {
+                console.error('Failed to fetch exam config:', err);
+            }
+        };
+        fetchConfig();
+
         const savedSession = localStorage.getItem('examSession');
         if (savedSession) {
             try {
@@ -188,20 +211,26 @@ export const ExamProvider = ({ children }) => {
                     setHasStarted(true);
                 }
 
-                // Fetch questions immediately on restore
-                const fetchQuestions = async () => {
+                // Fetch questions & answers immediately on restore
+                const fetchInitialData = async () => {
                     try {
-                        const response = await getQuestions();
-                        if (response.success) {
-                            setQuestions(response.data.questions);
-                        }
+                        const [qRes, aRes] = await Promise.all([
+                            getQuestions(),
+                            getUserResponses(session.sessionId).catch(err => {
+                                console.warn('Answer restoration skipped or failed on restore:', err);
+                                return { success: true, data: {} };
+                            })
+                        ]);
+                        
+                        if (qRes.success) setQuestions(qRes.data.questions);
+                        if (aRes.success) setAnswers(aRes.data);
                     } catch (err) {
-                        console.error('Initial question fetch failed:', err);
+                        console.error('Data restoration failed:', err);
                     } finally {
                         setLoading(false);
                     }
                 };
-                fetchQuestions();
+                fetchInitialData();
             } catch (err) {
                 console.error('Error loading session:', err);
                 localStorage.removeItem('examSession');
@@ -220,6 +249,18 @@ export const ExamProvider = ({ children }) => {
 
         const timer = setInterval(() => {
             const now = Date.now();
+            
+            // Check global stop time as well
+            if (examConfig && examConfig.stopTime) {
+                const globalStop = new Date(examConfig.stopTime).getTime();
+                if (now >= globalStop) {
+                    clearInterval(timer);
+                    setRemainingTime(0);
+                    handleAutoSubmit();
+                    return;
+                }
+            }
+
             const distance = expectedTime - now;
             const seconds = Math.max(0, Math.floor(distance / 1000));
 
@@ -302,6 +343,7 @@ export const ExamProvider = ({ children }) => {
         isSyncing,
         error,
         answeredCount,
+        examConfig,
         initializeExam,
         startExam,
         saveAnswer,

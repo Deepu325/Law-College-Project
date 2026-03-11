@@ -34,6 +34,16 @@ export const getSessionStatus = async (sessionId) => {
     return response.data;
 };
 
+export const getUserResponses = async (sessionId) => {
+    const response = await apiClient.get(`/responses/${sessionId}`);
+    return response.data;
+};
+
+export const getExamConfig = async () => {
+    const response = await apiClient.get('/config');
+    return response.data;
+};
+
 // ============================================
 // ADMIN APIs
 // ============================================
