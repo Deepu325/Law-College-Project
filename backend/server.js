@@ -21,6 +21,25 @@ app.set('trust proxy', 1);
 // Connect to database
 connectDB();
 
+// Auto-create admin on startup (Bypasses Shell requirement for Render Free Tier)
+const Admin = require('./models/Admin');
+const seedAdmin = async () => {
+    try {
+        const adminExists = await Admin.findOne({ email: 'sclat_admin@soundarya.edu' });
+        if (!adminExists) {
+            await Admin.create({
+                email: 'sclat_admin@soundarya.edu',
+                passwordHash: 'Soundarya@2026',
+                role: 'ADMIN'
+            });
+            console.log('✅ Default production admin seeded successfully');
+        }
+    } catch (err) {
+        console.error('⚠️ Admin seeding skipped:', err.message);
+    }
+};
+seedAdmin();
+
 // ============================================
 // CORS - Must be BEFORE other middleware
 // ============================================
