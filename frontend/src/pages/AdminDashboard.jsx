@@ -197,15 +197,27 @@ const AdminDashboard = () => {
                     ) : (
                         <div className="overflow-x-auto w-full pb-4 custom-scrollbar">
                             <table className="admin-table text-left">
-                                <thead className="bg-[#FAF9F6] border-y border-gray-200">
+                                <thead className="bg-white border-y border-gray-200">
                                     <tr>
                                         <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4">#</th>
-                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 min-w-[180px]">Contact Info</th>
-                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 min-w-[150px]">Location</th>
-                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4">Program</th>
-                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 text-center">Score</th>
-                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 text-center">Status</th>
-                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 min-w-[160px]">Activity Logs</th>
+                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 min-w-[180px]">
+                                            Contact Info
+                                        </th>
+                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 min-w-[150px]">
+                                            Location
+                                        </th>
+                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4">
+                                            Program
+                                        </th>
+                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 text-center">
+                                            Score
+                                        </th>
+                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 text-center">
+                                            Status
+                                        </th>
+                                        <th className="font-bold text-gray-500 uppercase tracking-widest text-xs py-4 px-4 min-w-[160px]">
+                                            Activity Logs
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
