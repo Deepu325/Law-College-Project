@@ -25,6 +25,7 @@ export const ExamProvider = ({ children }) => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [error, setError] = useState(null);
     const [examConfig, setExamConfig] = useState(null);
+    const [configError, setConfigError] = useState(null);
 
     const isLocked = isSubmitted || remainingTime <= 0;
 
@@ -184,11 +185,30 @@ export const ExamProvider = ({ children }) => {
     // Load session and config on mount
     useEffect(() => {
         const fetchConfig = async () => {
+            console.log('[ExamContext] Fetching exam configuration...');
             try {
                 const res = await getExamConfig();
-                if (res.success) setExamConfig(res.data);
+                console.log('[ExamContext] Config Response:', res);
+                
+                if (res.success && res.data) {
+                    const { startTime, stopTime, duration } = res.data;
+                    
+                    // Basic Validation
+                    if (!startTime || !stopTime || !duration) {
+                        console.error('[ExamContext] Invalid config received:', res.data);
+                        setConfigError('System configuration is incomplete. Missing required fields.');
+                        return;
+                    }
+
+                    setExamConfig(res.data);
+                    console.log('[ExamContext] Configuration loaded and validated.');
+                } else {
+                    console.error('[ExamContext] Config fetch unsuccessful:', res);
+                    setConfigError('Failed to load system configuration.');
+                }
             } catch (err) {
-                console.error('Failed to fetch exam config:', err);
+                console.error('[ExamContext] Config fetch error:', err);
+                setConfigError('Network error while loading system configuration.');
             }
         };
         fetchConfig();
@@ -341,9 +361,9 @@ export const ExamProvider = ({ children }) => {
         loading,
         saving,
         isSyncing,
-        error,
         answeredCount,
         examConfig,
+        configError,
         initializeExam,
         startExam,
         saveAnswer,

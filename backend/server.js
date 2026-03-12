@@ -113,9 +113,12 @@ app.get('/health', (req, res) => {
 app.get('/config', (req, res) => {
     res.json({
         success: true,
-        duration: parseInt(process.env.EXAM_DURATION_MINUTES) || 60,
-        startTime: process.env.EXAM_START_TIME,
-        stopTime: process.env.EXAM_STOP_TIME
+        data: {
+            duration: parseInt(process.env.EXAM_DURATION_MINUTES) || 60,
+            startTime: process.env.EXAM_START_TIME,
+            stopTime: process.env.EXAM_STOP_TIME,
+            currentTime: new Date()
+        }
     });
 });
 

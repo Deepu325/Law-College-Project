@@ -28,7 +28,8 @@ const ExamPage = () => {
         isSyncing,
         hasStarted,
         startExam,
-        examConfig
+        examConfig,
+        configError
     } = useExam();
 
     const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -36,63 +37,35 @@ const ExamPage = () => {
     const [tabSwitchCount, setTabSwitchCount] = useState(0);
     const [isNavOpen, setIsNavOpen] = useState(false);
 
+    const now = new Date();
+    const startTime = examConfig ? new Date(examConfig.startTime) : null;
+    const stopTime = examConfig ? new Date(examConfig.stopTime) : null;
+
+    const isBefore = startTime && now < startTime;
+    const isAfter = stopTime && now > stopTime;
+
+    // Debug logs
+    useEffect(() => {
+        if (examConfig) {
+            console.log('[ExamPage] Initialization Check:', {
+                configLoaded: !!examConfig,
+                hasSession: !!sessionData,
+                questionsCount: questions.length,
+                startTime: startTime?.toISOString(),
+                stopTime: stopTime?.toISOString(),
+                currentTime: now.toISOString(),
+                status: isBefore ? 'BEFORE' : isAfter ? 'AFTER' : 'ACTIVE'
+            });
+        }
+    }, [examConfig, sessionData, questions, startTime, stopTime, now, isBefore, isAfter]);
+
     // Redirect if no session
     useEffect(() => {
         if (!sessionData && !loading) {
+            console.warn('[ExamPage] No session found, redirecting to register');
             navigate('/register');
         }
     }, [sessionData, loading, navigate]);
-
-    // Anti-Cheat: Tab Switch Detection
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (document.hidden) {
-                setTabSwitchCount((prev) => prev + 1);
-                console.warn('Security Warning: Tab switch detected.');
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, []);
-
-    // Anti-Cheat: Disable Right Click, Copy, Paste, Cut
-    useEffect(() => {
-        const handleContextMenu = (e) => {
-            e.preventDefault();
-            return false;
-        };
-
-        const handleCopyPaste = (e) => {
-            e.preventDefault();
-            console.warn('Security Warning: Copy/Paste/Cut is disabled during the exam.');
-            return false;
-        };
-
-        document.addEventListener('contextmenu', handleContextMenu);
-        document.addEventListener('copy', handleCopyPaste);
-        document.addEventListener('paste', handleCopyPaste);
-        document.addEventListener('cut', handleCopyPaste);
-
-        return () => {
-            document.removeEventListener('contextmenu', handleContextMenu);
-            document.removeEventListener('copy', handleCopyPaste);
-            document.removeEventListener('paste', handleCopyPaste);
-            document.removeEventListener('cut', handleCopyPaste);
-        };
-    }, []);
-
-    // Close mobile nav on outside click
-    useEffect(() => {
-        if (isNavOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
-    }, [isNavOpen]);
 
     // Format time display
     const formatTime = (seconds) => {
@@ -101,54 +74,63 @@ const ExamPage = () => {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Get timer class based on remaining time
-    const getTimerClass = () => {
-        if (remainingTime <= 60) return 'timer-critical font-bold text-error-red animate-pulse';
-        if (remainingTime <= 300) return 'timer-warning text-brand-gold font-bold';
-        return 'timer-normal text-brand-purple font-medium';
-    };
-
-    // Handle answer selection
-    const handleAnswerSelect = (option) => {
-        if (currentQuestion) {
-            saveAnswer(currentQuestion._id, option);
-        }
-    };
-
-    // Handle submit
-    const handleSubmitClick = () => {
-        setShowSubmitModal(true);
-    };
-
-    const confirmSubmit = async () => {
-        setSubmitting(true);
-        const success = await submitExam();
-        if (success) {
-            navigate('/thank-you');
-        } else {
-            setSubmitting(false);
-            setShowSubmitModal(false);
-        }
-    };
-
-    // Prevent accidental page close
-    useEffect(() => {
-        const handleBeforeUnload = (e) => {
-            e.preventDefault();
-            e.returnValue = '';
-            return '';
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, []);
-
-    if (loading || !currentQuestion) {
+    if (loading) {
         return (
             <div className="min-h-screen bg-bg-exam flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-text-body font-bold animate-pulse">Initializing Secure Container...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (configError) {
+        return (
+            <div className="min-h-screen bg-bg-exam flex items-center justify-center p-4">
+                <div className="card-exam max-w-md w-full p-8 text-center border-t-4 border-error-red">
+                    <AlertTriangle className="w-16 h-16 text-error-red mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-text-dark mb-2">Configuration Error</h2>
+                    <p className="text-text-body mb-6">{configError}</p>
+                    <button onClick={() => window.location.reload()} className="btn-primary w-full py-3">Try Again</button>
+                </div>
+            </div>
+        );
+    }
+
+    if (isBefore) {
+        return (
+            <div className="min-h-screen bg-bg-exam flex items-center justify-center p-4">
+                <div className="card-exam max-w-md w-full p-8 text-center border-t-4 border-brand-purple">
+                    <Clock className="w-16 h-16 text-brand-purple mx-auto mb-4 animate-bounce" />
+                    <h2 className="text-2xl font-bold text-text-dark mb-2">Exam Not Started</h2>
+                    <p className="text-text-body mb-6">The examination session has not started yet. Please check the scheduled time.</p>
+                    <button onClick={() => navigate('/')} className="btn-outline w-full py-3">Back to Home</button>
+                </div>
+            </div>
+        );
+    }
+
+    if (isAfter) {
+        return (
+            <div className="min-h-screen bg-bg-exam flex items-center justify-center p-4">
+                <div className="card-exam max-w-md w-full p-8 text-center border-t-4 border-error-red">
+                    <AlertTriangle className="w-16 h-16 text-error-red mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-text-dark mb-2">Exam Ended</h2>
+                    <p className="text-text-body mb-6">The examination window for this session has closed.</p>
+                    <button onClick={() => navigate('/')} className="btn-outline w-full py-3">Back to Home</button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!currentQuestion) {
+        return (
+            <div className="min-h-screen bg-bg-exam flex items-center justify-center p-4">
+                <div className="card-exam max-w-md w-full p-8 text-center border-t-4 border-brand-gold">
+                    <div className="w-12 h-12 border-4 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <h2 className="text-xl font-bold text-text-dark mb-2">Loading Questions...</h2>
+                    <p className="text-text-body mb-4">Establishing secure connection to question bank.</p>
                 </div>
             </div>
         );
