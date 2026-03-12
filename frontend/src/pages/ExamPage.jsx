@@ -74,6 +74,79 @@ const ExamPage = () => {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    // Helper to get timer CSS class
+    const getTimerClass = () => {
+        if (remainingTime <= 60) return 'text-error-red animate-pulse';
+        if (remainingTime <= 300) return 'text-brand-gold';
+        return 'text-brand-purple';
+    };
+
+    // Handle option selection
+    const handleAnswerSelect = useCallback((option) => {
+        if (isLocked || !currentQuestion) return;
+        saveAnswer(currentQuestion._id, option);
+    }, [isLocked, currentQuestion, saveAnswer]);
+
+    // Submission handlers
+    const handleSubmitClick = () => {
+        setShowSubmitModal(true);
+    };
+
+    const confirmSubmit = async () => {
+        setSubmitting(true);
+        try {
+            const success = await submitExam();
+            if (success) {
+                navigate('/thank-you');
+            }
+        } catch (err) {
+            console.error('Submission failed:', err);
+        } finally {
+            setSubmitting(false);
+            setShowSubmitModal(false);
+        }
+    };
+
+    // Anti-cheat: Tab switching and Focus loss detection
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden && hasStarted && !isLocked) {
+                setTabSwitchCount(prev => prev + 1);
+            }
+        };
+
+        const handleBlur = () => {
+            if (hasStarted && !isLocked) {
+                setTabSwitchCount(prev => prev + 1);
+            }
+        };
+
+        // Prevent right click
+        const handleContextMenu = (e) => e.preventDefault();
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('blur', handleBlur);
+        document.addEventListener('contextmenu', handleContextMenu);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('blur', handleBlur);
+            document.removeEventListener('contextmenu', handleContextMenu);
+        };
+    }, [hasStarted, isLocked]);
+
+    // Prevent navigation during exam
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (hasStarted && !isSubmitted && !isLocked) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasStarted, isSubmitted, isLocked]);
+
     if (loading) {
         return (
             <div className="min-h-screen bg-bg-exam flex items-center justify-center">
