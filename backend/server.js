@@ -134,6 +134,8 @@ app.get('/config', (req, res) => {
 
 // Map root level /register to the exam router
 app.use('/register', examRoutes);
+app.use('/questions', examRoutes);
+app.use('/responses', examRoutes);
 
 // API routes
 app.use('/api/admin', adminRoutes);

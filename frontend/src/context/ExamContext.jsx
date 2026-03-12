@@ -106,7 +106,10 @@ export const ExamProvider = ({ children }) => {
 
             // Fetch questions & answers (answers are optional, don't fail if fetch fails)
             const [qResponse, aResponse] = await Promise.all([
-                getQuestions(),
+                getQuestions().then(res => {
+                    console.log('[ExamContext] Questions Response:', res);
+                    return res;
+                }),
                 getUserResponses(data.sessionId).catch(err => {
                     console.warn('Answer restoration skipped or failed:', err);
                     return { success: true, data: {} };
