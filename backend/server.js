@@ -15,6 +15,9 @@ const adminRoutes = require('./routes/adminRoutes');
 // Initialize express app
 const app = express();
 
+// Set trust proxy for Render/Vercel
+app.set('trust proxy', 1);
+
 // Connect to database
 connectDB();
 
@@ -43,7 +46,11 @@ const corsOptions = {
         // Allow requests with no origin (mobile apps, Postman, server-to-server)
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.includes(origin)) {
+        if (
+            allowedOrigins.includes(origin) || 
+            origin.endsWith('.vercel.app') || 
+            origin.includes('vercel.app')
+        ) {
             callback(null, true);
         } else {
             console.warn(`[CORS] Blocked request from origin: ${origin}`);
@@ -108,6 +115,9 @@ app.get('/health', (req, res) => {
         environment: process.env.NODE_ENV
     });
 });
+
+// Suppress favicon logs
+app.get('/favicon.ico', (req, res) => res.status(204));
 
 // Root-level routes for frontend compatibility
 app.get('/config', (req, res) => {
