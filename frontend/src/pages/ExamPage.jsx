@@ -348,8 +348,8 @@ const ExamPage = () => {
                             <div className="p-4 sm:p-6 md:p-8 flex-1 flex flex-col">
                                 {/* Passage (if RC or Legal) */}
                                 {currentQuestion.passageText && (
-                                    <div className="bg-[#FAF9F6] p-4 md:p-6 rounded-xl mb-6 md:mb-8 border border-gray-200 shadow-inner max-h-[250px] md:max-h-[350px] overflow-y-auto relative custom-scrollbar">
-                                        <div className="sticky top-0 bg-[#FAF9F6] pb-2 text-brand-purple text-xs font-bold uppercase tracking-widest border-b border-gray-200 mb-3 flex items-center gap-2 z-10">
+                                    <div className="bg-white p-4 md:p-6 rounded-xl mb-6 md:mb-8 border border-gray-200 shadow-inner max-h-[250px] md:max-h-[350px] overflow-y-auto relative custom-scrollbar">
+                                        <div className="sticky top-0 bg-white pb-2 text-brand-purple text-xs font-bold uppercase tracking-widest border-b border-gray-200 mb-3 flex items-center gap-2 z-10">
                                             <FileText className="w-4 h-4"/>
                                             Reference Passage
                                         </div>

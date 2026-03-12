@@ -51,7 +51,7 @@ const ThankYouPage = () => {
                             Thank you for completing the Soundarya Law Entrance Test.
                         </p>
 
-                        <div className="bg-[#FAF9F6] p-6 sm:p-8 rounded-2xl mb-10 border border-gray-200 shadow-sm text-left">
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl mb-10 border border-gray-200 shadow-sm text-left">
                             <h2 className="font-extrabold text-sm sm:text-base text-brand-purple mb-4 uppercase tracking-widest border-b border-gray-200 pb-2">Next Steps</h2>
                             <ul className="space-y-4">
                                 <li className="flex items-start gap-3">
