@@ -187,81 +187,91 @@ export const ExamProvider = ({ children }) => {
 
     // Load session and config on mount
     useEffect(() => {
-        const fetchConfig = async () => {
-            console.log('[ExamContext] Fetching exam configuration...');
+        const initializeSystem = async () => {
+            console.log('[ExamContext] Starting system initialization...');
+            setLoading(true);
+            
             try {
-                const res = await getExamConfig();
-                console.log('[ExamContext] Config Response:', res);
+                // 1. Fetch Global Config FIRST
+                console.log('[ExamContext] Fetching exam configuration...');
+                const configRes = await getExamConfig();
+                console.log('[ExamContext] Config Response:', configRes);
                 
-                if (res.success && res.data) {
-                    const { startTime, stopTime, duration } = res.data;
+                if (configRes.success && configRes.data) {
+                    const { startTime, stopTime, duration } = configRes.data;
                     
                     // Basic Validation
                     if (!startTime || !stopTime || !duration) {
-                        console.error('[ExamContext] Invalid config received:', res.data);
+                        console.error('[ExamContext] Invalid config received:', configRes.data);
                         setConfigError('System configuration is incomplete. Missing required fields.');
+                        setLoading(false);
                         return;
                     }
 
-                    setExamConfig(res.data);
+                    setExamConfig(configRes.data);
                     console.log('[ExamContext] Configuration loaded and validated.');
                 } else {
-                    console.error('[ExamContext] Config fetch unsuccessful:', res);
+                    console.error('[ExamContext] Config fetch unsuccessful:', configRes);
                     setConfigError('Failed to load system configuration.');
-                }
-            } catch (err) {
-                console.error('[ExamContext] Config fetch error:', err);
-                setConfigError('Network error while loading system configuration.');
-            }
-        };
-        fetchConfig();
-
-        const savedSession = localStorage.getItem('examSession');
-        if (savedSession) {
-            try {
-                setLoading(true);
-                const session = JSON.parse(savedSession);
-                setSessionData(session);
-
-                // Calculate remaining time
-                const endTime = new Date(session.endTime);
-                const now = new Date();
-                const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
-                setRemainingTime(remaining);
-
-                // If resuming an already started exam
-                if (session.status === 'in_progress') {
-                    setHasStarted(true);
+                    setLoading(false);
+                    return;
                 }
 
-                // Fetch questions & answers immediately on restore
-                const fetchInitialData = async () => {
+                // 2. Check for saved session
+                const savedSession = localStorage.getItem('examSession');
+                if (savedSession) {
+                    console.log('[ExamContext] Saved session found, restoring...');
+                    const session = JSON.parse(savedSession);
+                    setSessionData(session);
+
+                    // Calculate remaining time
+                    const endTime = new Date(session.endTime);
+                    const now = new Date();
+                    const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+                    setRemainingTime(remaining);
+
+                    if (session.status === 'in_progress') {
+                        setHasStarted(true);
+                    }
+
+                    // 3. Fetch questions & user responses
+                    console.log('[ExamContext] Fetching session questions and responses...');
                     try {
                         const [qRes, aRes] = await Promise.all([
                             getQuestions(),
                             getUserResponses(session.sessionId).catch(err => {
-                                console.warn('Answer restoration skipped or failed on restore:', err);
+                                console.warn('Answer restoration failed during init:', err);
                                 return { success: true, data: {} };
                             })
                         ]);
                         
+                        console.log('[ExamContext] Initialization data received:', { 
+                            qSuccess: qRes.success, 
+                            qCount: qRes.data?.questions?.length,
+                            aSuccess: aRes.success 
+                        });
+
                         if (qRes.success) setQuestions(qRes.data.questions);
                         if (aRes.success) setAnswers(aRes.data);
                     } catch (err) {
-                        console.error('Data restoration failed:', err);
-                    } finally {
-                        setLoading(false);
+                        console.error('[ExamContext] Data restoration error:', err);
+                        // We don't necessarily block if questions fail, 
+                        // but it will trigger the "Loading Questions" state later
                     }
-                };
-                fetchInitialData();
+                } else {
+                    console.log('[ExamContext] No saved session found.');
+                }
+
             } catch (err) {
-                console.error('Error loading session:', err);
-                localStorage.removeItem('examSession');
+                console.error('[ExamContext] Critical initialization error:', err);
+                setConfigError('A critical error occurred while initializing the examination system.');
+            } finally {
+                console.log('[ExamContext] System initialization complete. Setting loading to false.');
                 setLoading(false);
             }
-        } else {
-            setLoading(false);
-        }
+        };
+
+        initializeSystem();
     }, []);
 
     // Timer countdown with system time drift protection
