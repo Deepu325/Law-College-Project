@@ -37,7 +37,7 @@ const authMiddleware = async (req, res, next) => {
             }
 
             // Attach admin to request
-            req.admin = {
+            req.user = {
                 id: admin._id,
                 email: admin.email,
                 role: admin.role

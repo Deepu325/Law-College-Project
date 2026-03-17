@@ -74,3 +74,18 @@ export const getDashboardStats = async () => {
     const response = await apiClient.get('/admin/stats');
     return response.data;
 };
+
+export const clearAllData = async () => {
+    const response = await apiClient.delete('/admin/clear-all-data');
+    return response.data;
+};
+
+export const toggleExamStatus = async (status) => {
+    const response = await apiClient.post('/admin/toggle-status', { status });
+    return response.data;
+};
+
+export const getExamStatus = async () => {
+    const response = await apiClient.get('/admin/status');
+    return response.data;
+};

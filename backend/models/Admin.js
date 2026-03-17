@@ -19,13 +19,20 @@ const adminSchema = new mongoose.Schema({
     role: {
         type: String,
         required: true,
-        enum: ['ADMIN'],
+        enum: ['ADMIN', 'SUPER_ADMIN'],
         default: 'ADMIN'
     },
     createdAt: {
         type: Date,
         default: Date.now,
         immutable: true
+    },
+    loginCount: {
+        type: Number,
+        default: 0
+    },
+    lastLogin: {
+        type: Date
     }
 }, {
     timestamps: true

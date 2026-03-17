@@ -19,26 +19,51 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Connect to database
-connectDB();
+connectDB().then(() => {
+    seedAdmins();
+});
 
 // Auto-create admin on startup (Bypasses Shell requirement for Render Free Tier)
 const Admin = require('./models/Admin');
-const seedAdmin = async () => {
+const seedAdmins = async () => {
     try {
-        const adminExists = await Admin.findOne({ email: 'sclat_admin@soundarya.edu' });
-        if (!adminExists) {
+        // 1. Super Admin
+        const superAdminEmail = 'SA-sclat_admin@soundarya.edu';
+        const superAdminExists = await Admin.findOne({ email: superAdminEmail.toLowerCase() });
+        if (!superAdminExists) {
             await Admin.create({
-                email: 'sclat_admin@soundarya.edu',
+                email: superAdminEmail,
+                passwordHash: 'Soundarya@2026',
+                role: 'SUPER_ADMIN'
+            });
+            console.log(`✅ Super Admin (${superAdminEmail}) seeded successfully`);
+        }
+
+        // 2. Normal Admin (Using the previous super admin email as requested)
+        const normalAdminEmail = 'sclat_admin@soundarya.edu';
+        const normalAdminExists = await Admin.findOne({ email: normalAdminEmail.toLowerCase() });
+        if (!normalAdminExists) {
+            await Admin.create({
+                email: normalAdminEmail,
                 passwordHash: 'Soundarya@2026',
                 role: 'ADMIN'
             });
-            console.log('✅ Default production admin seeded successfully');
+            console.log(`✅ Normal Admin (${normalAdminEmail}) seeded successfully`);
+        } else {
+            // Ensure the role is set to ADMIN if it was previously SUPER_ADMIN
+            normalAdminExists.role = 'ADMIN';
+            await normalAdminExists.save();
+            console.log(`✅ Admin (${normalAdminEmail}) role verified as NORMAL ADMIN`);
         }
+
+        // Optional: Clean up the temporary testing admin if it exists
+        await Admin.deleteOne({ email: 'admin@soundarya.edu' });
+
     } catch (err) {
-        console.error('⚠️ Admin seeding skipped:', err.message);
+        console.error('⚠️ Admin seeding failed:', err.message);
     }
 };
-seedAdmin();
+seedAdmins();
 
 // ============================================
 // CORS - Must be BEFORE other middleware

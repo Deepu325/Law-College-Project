@@ -36,7 +36,11 @@ const AdminLogin = () => {
 
             if (response.success) {
                 sessionStorage.setItem('adminToken', response.data.token);
-                navigate('/admin/dashboard');
+                if (response.data.admin.role === 'SUPER_ADMIN') {
+                    navigate('/super-admin/dashboard');
+                } else {
+                    navigate('/admin/dashboard');
+                }
             }
         } catch (err) {
             setLoading(false);

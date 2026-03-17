@@ -154,9 +154,9 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 2. Run:
 ```bash
 npm run seed:questions
-npm run create:admin
+npm run seed:admins
 ```
-3. Enter admin email and password when prompted
+3. This will automatically set up both the **Super Admin** and **Normal Admin** with the predefined SLET credentials.
 
 ### 3.6 Test Backend
 ```bash
