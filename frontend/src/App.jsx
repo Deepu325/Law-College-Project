@@ -30,18 +30,36 @@ const MaintenanceGuard = ({ children }) => {
   const location = useLocation();
 
   React.useEffect(() => {
-    // Only check for student-facing routes
-    if (location.pathname.startsWith('/admin') || 
-        location.pathname.startsWith('/super-admin') || 
-        location.pathname === '/maintenance') {
-      setLoading(false);
-      return;
-    }
-
     const checkStatus = async () => {
       try {
+        // 1. Check if the path is specifically excluded (Login or Maintenance itself)
+        if (location.pathname === '/admin/login' || location.pathname === '/maintenance') {
+          setIsPaused(false);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Fetch system status
         const { status } = await getExamStatus();
-        setIsPaused(status === 'paused');
+        const systemPaused = status === 'paused';
+
+        // 3. Check if user is a Super Admin (They bypass maintenance)
+        const token = sessionStorage.getItem('adminToken');
+        let isSuperAdmin = false;
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            isSuperAdmin = payload.role === 'SUPER_ADMIN';
+          } catch (e) {}
+        }
+
+        // 4. Determine if we should show maintenance
+        // If system is paused AND user is NOT a Super Admin
+        if (systemPaused && !isSuperAdmin) {
+          setIsPaused(true);
+        } else {
+          setIsPaused(false);
+        }
       } catch (e) {
         console.error("Status check failed", e);
       } finally {
@@ -52,11 +70,8 @@ const MaintenanceGuard = ({ children }) => {
   }, [location.pathname]);
 
   if (loading) return null;
-  const isExcluded = location.pathname.startsWith('/admin') || 
-                    location.pathname.startsWith('/super-admin') || 
-                    location.pathname === '/maintenance';
 
-  if (isPaused && !isExcluded) {
+  if (isPaused) {
     return <Navigate to="/maintenance" replace />;
   }
   return children;
@@ -104,18 +119,22 @@ function App() {
           <Route
             path="/admin/dashboard"
             element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
+              <MaintenanceGuard>
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              </MaintenanceGuard>
             }
           />
 
           <Route
             path="/super-admin/dashboard"
             element={
-              <ProtectedRoute requiredRole="SUPER_ADMIN">
-                <SuperAdminDashboard />
-              </ProtectedRoute>
+              <MaintenanceGuard>
+                <ProtectedRoute requiredRole="SUPER_ADMIN">
+                  <SuperAdminDashboard />
+                </ProtectedRoute>
+              </MaintenanceGuard>
             }
           />
 
