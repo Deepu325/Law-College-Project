@@ -37,15 +37,15 @@ const Maintenance = () => {
                     </div>
 
                     <div className="pt-8 border-t border-gray-100">
-                        <p className="text-sm text-gray-400 mb-4 font-bold uppercase tracking-widest">Need Urgent Help?</p>
+                        <p className="text-sm text-gray-400 mb-4 font-bold uppercase tracking-widest">Application Maintenance Team</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                            <a href="tel:+91XXXXXXXXXX" className="flex items-center gap-2 text-brand-purple font-bold hover:underline">
+                            <a href="tel:+918310605144" className="flex items-center gap-2 text-brand-purple font-bold hover:underline">
                                 <Phone className="w-4 h-4" />
-                                +91 99000 00000
+                                +91 83106 05144
                             </a>
-                            <a href="mailto:support@college.edu" className="flex items-center gap-2 text-brand-purple font-bold hover:underline">
+                            <a href="mailto:deepukc2526@gmail.com" className="flex items-center gap-2 text-brand-purple font-bold hover:underline">
                                 <Mail className="w-4 h-4" />
-                                support@college.edu
+                                deepukc2526@gmail.com
                             </a>
                         </div>
                     </div>

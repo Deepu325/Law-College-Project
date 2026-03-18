@@ -96,7 +96,7 @@ const AdminLogin = () => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         className="input-field pl-12 bg-gray-50 focus:bg-white text-base py-3 sm:py-4 transition-all"
-                                        placeholder="admin@college.edu"
+                                        placeholder="deepukc2526@gmail.com"
                                         required
                                     />
                                 </div>
